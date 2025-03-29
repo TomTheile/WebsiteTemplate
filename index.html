@@ -1,510 +1,210 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meine Webseite</title>
-  <style>
-    /* CSS Reset */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    /* Globale Stile */
-    body {
-      font-family: 'Arial', sans-serif;
-      line-height: 1.6;
-      color: #333;
-    }
-    
-    a {
-      text-decoration: none;
-      color: #0066cc;
-    }
-    
-    a:hover {
-      color: #004499;
-    }
-    
-    .container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-    
-    /* Header Styles */
-    header {
-      background-color: #ffffff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      padding: 20px 0;
-      position: fixed;
-      width: 100%;
-      top: 0;
-      z-index: 1000;
-    }
-    
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #0066cc;
-    }
-    
-    nav ul {
-      display: flex;
-      list-style: none;
-    }
-    
-    nav ul li {
-      margin-left: 20px;
-    }
-    
-    nav ul li a {
-      color: #333;
-      transition: color 0.3s;
-    }
-    
-    nav ul li a:hover {
-      color: #0066cc;
-    }
-    
-    .mobile-menu-btn {
-      display: none;
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-    
-    /* Hero Section */
-    .hero {
-      padding: 120px 0 80px;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      text-align: center;
-    }
-    
-    .hero h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-      color: #333;
-    }
-    
-    .hero p {
-      font-size: 1.2rem;
-      margin-bottom: 30px;
-      color: #666;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    
-    .btn {
-      display: inline-block;
-      padding: 12px 30px;
-      background-color: #0066cc;
-      color: white;
-      border-radius: 5px;
-      font-weight: bold;
-      transition: background-color 0.3s;
-    }
-    
-    .btn:hover {
-      background-color: #004499;
-      color: white;
-    }
-    
-    .btn-outline {
-      background-color: transparent;
-      border: 2px solid #0066cc;
-      color: #0066cc;
-    }
-    
-    .btn-outline:hover {
-      background-color: #0066cc;
-      color: white;
-    }
-    
-    /* Features Section */
-    .features {
-      padding: 80px 0;
-      background-color: #ffffff;
-    }
-    
-    .section-title {
-      text-align: center;
-      margin-bottom: 60px;
-    }
-    
-    .section-title h2 {
-      font-size: 2rem;
-      color: #333;
-      margin-bottom: 15px;
-    }
-    
-    .section-title p {
-      color: #666;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 30px;
-    }
-    
-    .feature-card {
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
-    }
-    
-    .feature-card:hover {
-      transform: translateY(-10px);
-    }
-    
-    .feature-icon {
-      font-size: 2rem;
-      color: #0066cc;
-      margin-bottom: 20px;
-    }
-    
-    .feature-card h3 {
-      font-size: 1.5rem;
-      margin-bottom: 15px;
-    }
-    
-    /* About Section */
-    .about {
-      padding: 80px 0;
-      background-color: #f9f9f9;
-    }
-    
-    .about-content {
-      display: flex;
-      align-items: center;
-      gap: 50px;
-    }
-    
-    .about-text {
-      flex: 1;
-    }
-    
-    .about-image {
-      flex: 1;
-    }
-    
-    .about-image img {
-      width: 100%;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    
-    /* Contact Section */
-    .contact {
-      padding: 80px 0;
-      background-color: #ffffff;
-    }
-    
-    .contact-form {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    
-    .form-group input,
-    .form-group textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1rem;
-    }
-    
-    .form-group textarea {
-      height: 150px;
-    }
-    
-    /* Footer */
-    footer {
-      background-color: #333;
-      color: white;
-      padding: 40px 0;
-      text-align: center;
-    }
-    
-    .footer-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    
-    .social-links a {
-      color: white;
-      margin: 0 10px;
-      font-size: 1.5rem;
-    }
-    
-    .footer-bottom {
-      border-top: 1px solid rgba(255,255,255,0.1);
-      padding-top: 20px;
-      color: #aaa;
-    }
-    
-    /* Responsive Styles */
-    @media (max-width: 768px) {
-      .mobile-menu-btn {
-        display: block;
-      }
-      
-      nav {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        background-color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        padding: 20px 0;
-        display: none;
-      }
-      
-      nav.active {
-        display: block;
-      }
-      
-      nav ul {
-        flex-direction: column;
-      }
-      
-      nav ul li {
-        margin: 10px 0;
-      }
-      
-      .hero h1 {
-        font-size: 2rem;
-      }
-      
-      .about-content {
-        flex-direction: column;
-      }
-      
-      .footer-content {
-        flex-direction: column;
-        gap: 20px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herobrine AFK Bot</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Header -->
-  <header>
     <div class="container">
-      <div class="header-content">
-        <div class="logo">MeineWebseite</div>
-        <button class="mobile-menu-btn">☰</button>
-        <nav id="main-nav">
-          <ul>
-            <li><a href="#home">Startseite</a></li>
-            <li><a href="#features">Funktionen</a></li>
-            <li><a href="#about">Über uns</a></li>
-            <li><a href="#contact">Kontakt</a></li>
-          </ul>
-        </nav>
-      </div>
-    </div>
-  </header>
-
-  <!-- Hero Section -->
-  <section class="hero" id="home">
-    <div class="container">
-      <h1>Willkommen auf meiner Webseite</h1>
-      <p>Eine moderne, responsive Webseite mit einem sauberen Design und interaktiven Elementen.</p>
-      <a href="#contact" class="btn">Kontakt aufnehmen</a>
-      <a href="#features" class="btn btn-outline">Mehr erfahren</a>
-    </div>
-  </section>
-
-  <!-- Features Section -->
-  <section class="features" id="features">
-    <div class="container">
-      <div class="section-title">
-        <h2>Unsere Funktionen</h2>
-        <p>Entdecken Sie, was wir Ihnen bieten können</p>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">🚀</div>
-          <h3>Schnelle Leistung</h3>
-          <p>Unsere Webseite ist optimiert für schnelle Ladezeiten und reibungslose Benutzererfahrung.</p>
+        <!-- Header (Top) -->
+        <div class="header">
+            <h1>Herobrine AFK Bot</h1>
+            <div class="quick-links">
+                <a href="#">Nutzungsbedingungen</a>
+                <a href="#">Datenschutz</a>
+            </div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">📱</div>
-          <h3>Responsives Design</h3>
-          <p>Die Webseite sieht auf allen Geräten, vom Smartphone bis zum Desktop, großartig aus.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔒</div>
-          <h3>Sicher und Zuverlässig</h3>
-          <p>Wir nutzen die neuesten Sicherheitsmaßnahmen, um Ihre Daten zu schützen.</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- About Section -->
-  <section class="about" id="about">
-    <div class="container">
-      <div class="section-title">
-        <h2>Über Uns</h2>
-        <p>Lernen Sie unser Team und unsere Mission kennen</p>
-      </div>
-      <div class="about-content">
-        <div class="about-text">
-          <h3>Unsere Geschichte</h3>
-          <p>Wir sind ein leidenschaftliches Team von Entwicklern und Designern, die sich darauf konzentrieren, außergewöhnliche digitale Erlebnisse zu schaffen.</p>
-          <p>Mit über 5 Jahren Erfahrung in der Branche haben wir für zahlreiche Kunden innovative Lösungen entwickelt und umgesetzt.</p>
-          <h3>Unsere Mission</h3>
-          <p>Unsere Mission ist es, moderne und benutzerfreundliche Webseiten zu erstellen, die nicht nur gut aussehen, sondern auch geschäftliche Ziele erreichen.</p>
-        </div>
-        <div class="about-image">
-          <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80" alt="Unser Team">
-        </div>
-      </div>
-    </div>
-  </section>
+        <div class="main-content">
+            <!-- Login/Register Section -->
+            <div class="auth-section green-border">
+                <div class="auth-tabs">
+                    <button class="active" id="login-tab">Login</button>
+                    <button id="register-tab">Registrieren</button>
+                </div>
 
-  <!-- Contact Section -->
-  <section class="contact" id="contact">
-    <div class="container">
-      <div class="section-title">
-        <h2>Kontaktieren Sie Uns</h2>
-        <p>Haben Sie Fragen oder möchten Sie mit uns zusammenarbeiten? Kontaktieren Sie uns!</p>
-      </div>
-      <div class="contact-form">
-        <form id="contact-form">
-          <div class="form-group">
-            <label for="name">Name</label>
-            <input type="text" id="name" name="name" required>
-          </div>
-          <div class="form-group">
-            <label for="email">E-Mail</label>
-            <input type="email" id="email" name="email" required>
-          </div>
-          <div class="form-group">
-            <label for="subject">Betreff</label>
-            <input type="text" id="subject" name="subject" required>
-          </div>
-          <div class="form-group">
-            <label for="message">Nachricht</label>
-            <textarea id="message" name="message" required></textarea>
-          </div>
-          <button type="submit" class="btn">Nachricht senden</button>
-        </form>
-      </div>
-    </div>
-  </section>
+                <!-- Login Form -->
+                <form class="auth-form" id="login-form">
+                    <h2>Willkommen zurück</h2>
+                    <div class="form-group">
+                        <label>E-Mail</label>
+                        <input type="email" placeholder="Gib deine E-Mail ein" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Passwort</label>
+                        <input type="password" placeholder="Gib dein Passwort ein" required>
+                    </div>
+                    <button type="submit" class="auth-btn" id="login-btn">Anmelden</button>
+                    <div class="forgot-password" style="text-align: center; margin-top: 15px;">
+                        <a href="forgot-password.html" style="color: #a0a0a0; text-decoration: none; font-size: 0.9rem;">Passwort vergessen?</a>
+                    </div>
+                </form>
 
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <div class="footer-content">
-        <div class="logo">MeineWebseite</div>
-        <div class="social-links">
-          <a href="#" aria-label="Facebook">📘</a>
-          <a href="#" aria-label="Twitter">🐦</a>
-          <a href="#" aria-label="Instagram">📷</a>
-          <a href="#" aria-label="LinkedIn">💼</a>
+                <!-- Register Form -->
+                <form class="auth-form" id="register-form" style="display: none;">
+                    <h2>Konto erstellen</h2>
+                    <div class="form-group">
+                        <label>Benutzername</label>
+                        <input type="text" placeholder="Gib deinen Benutzernamen ein" required>
+                    </div>
+                    <div class="form-group">
+                        <label>E-Mail</label>
+                        <input type="email" placeholder="Gib deine E-Mail ein" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Passwort</label>
+                        <input type="password" placeholder="Gib dein Passwort ein" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Passwort bestätigen</label>
+                        <input type="password" placeholder="Bestätige dein Passwort" required>
+                    </div>
+                    <button type="submit" class="auth-btn" id="register-btn">Registrieren</button>
+                </form>
+            </div>
+
+            <!-- Quick Guide -->
+            <div class="quick-guide green-border">
+                <h3>🚀 Schnellstart</h3>
+                <div class="guide-box">
+                    <div class="guide-step">👤 <strong>Registrieren</strong> – Erstelle ein Konto</div>
+                </div>
+                <div class="guide-box">
+                    <div class="guide-step">📧 <strong>Bestätigen</strong> – Prüfe deine E-Mails</div>
+                </div>
+                <div class="guide-box">
+                    <div class="guide-step">🌐 <strong>IP eingeben</strong> – Server-Adresse</div>
+                </div>
+                <div class="guide-box">
+                    <div class="guide-step">🎮 <strong>Starten</strong> – Aktiviere den Bot!</div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2025 MeineWebseite. Alle Rechte vorbehalten.</p>
-      </div>
-    </div>
-  </footer>
 
-  <!-- JavaScript -->
-  <script>
-    // Mobile Menu Toggle
-    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-    const mainNav = document.getElementById('main-nav');
-    
-    mobileMenuBtn.addEventListener('click', () => {
-      mainNav.classList.toggle('active');
-    });
-    
-    // Smooth Scroll for Navigation Links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-          behavior: 'smooth'
+        <!-- Footer -->
+        <div class="footer">
+            <p>Der fortschrittliche Minecraft Bot-Service</p>
+            <div class="footer-links">
+                <a href="#">Nutzungsbedingungen</a>
+                <a href="#">Datenschutz</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tabs wechseln
+            const loginTab = document.getElementById('login-tab');
+            const registerTab = document.getElementById('register-tab');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            
+            loginTab.addEventListener('click', function() {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+            });
+            
+            registerTab.addEventListener('click', function() {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.style.display = 'block';
+                loginForm.style.display = 'none';
+            });
+            
+            // Login-Formular
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = loginForm.querySelector('input[type="email"]').value;
+                const password = loginForm.querySelector('input[type="password"]').value;
+                
+                clearStatusMessages(loginForm);
+                
+                // API-Anfrage zum Login
+                fetch('/api/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Login erfolgreich
+                        localStorage.setItem('auth_token', data.token);
+                        localStorage.setItem('user_id', data.user.uid);
+                        localStorage.setItem('username', data.user.username);
+                        localStorage.setItem('email', data.user.email);
+                        localStorage.setItem('user_role', data.user.role || 'user');
+                        
+                        // Zum Dashboard weiterleiten
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        // Fehler anzeigen
+                        const errorMessage = createStatusMessage(data.error || 'Anmeldung fehlgeschlagen', true);
+                        loginForm.appendChild(errorMessage);
+                    }
+                })
+                .catch(error => {
+                    console.error('Login-Fehler:', error);
+                    const errorMessage = createStatusMessage('Serverfehler bei der Anmeldung', true);
+                    loginForm.appendChild(errorMessage);
+                });
+            });
+            
+            // Registrierungsformular
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = registerForm.querySelector('input[type="text"]').value;
+                const email = registerForm.querySelector('input[type="email"]').value;
+                const password = registerForm.querySelectorAll('input[type="password"]')[0].value;
+                const confirmPassword = registerForm.querySelectorAll('input[type="password"]')[1].value;
+                
+                clearStatusMessages(registerForm);
+                
+                // Passwörter vergleichen
+                if (password !== confirmPassword) {
+                    const errorMessage = createStatusMessage('Die Passwörter stimmen nicht überein', true);
+                    registerForm.appendChild(errorMessage);
+                    return;
+                }
+                
+                // API-Anfrage zur Registrierung
+                fetch('/api/users/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Registrierung erfolgreich
+                        const successMessage = createStatusMessage(
+                            'Registrierung erfolgreich! Bitte überprüfe deine E-Mails zur Bestätigung deines Kontos.'
+                        );
+                        registerForm.appendChild(successMessage);
+                        
+                        // Nach kurzer Zeit zum Login zurückkehren
+                        setTimeout(() => {
+                            loginTab.click();
+                        }, 3000);
+                    } else {
+                        // Fehler anzeigen
+                        const errorMessage = createStatusMessage(data.error || 'Registrierung fehlgeschlagen', true);
+                        registerForm.appendChild(errorMessage);
+                    }
+                })
+                .catch(error => {
+                    console.error('Registrierungsfehler:', error);
+                    const errorMessage = createStatusMessage('Serverfehler bei der Registrierung', true);
+                    registerForm.appendChild(errorMessage);
+                });
+            });
         });
-        
-        // Close mobile menu if open
-        if (mainNav.classList.contains('active')) {
-          mainNav.classList.remove('active');
-        }
-      });
-    });
-    
-    // Form Submission
-    const contactForm = document.getElementById('contact-form');
-    
-    contactForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      // In einer echten Anwendung würden Sie hier die Daten an einen Server senden
-      // Hier zeigen wir nur eine Bestätigungsnachricht an
-      alert('Vielen Dank für Ihre Nachricht! Wir werden uns so schnell wie möglich bei Ihnen melden.');
-      contactForm.reset();
-    });
-    
-    // Animation beim Scrollen
-    function animateOnScroll() {
-      const elements = document.querySelectorAll('.feature-card, .about-content');
-      
-      elements.forEach(element => {
-        const elementPosition = element.getBoundingClientRect().top;
-        const windowHeight = window.innerHeight;
-        
-        if (elementPosition < windowHeight * 0.8) {
-          element.style.opacity = '1';
-          element.style.transform = 'translateY(0)';
-        }
-      });
-    }
-    
-    // Anfangsstil für die Animation festlegen
-    document.querySelectorAll('.feature-card, .about-content').forEach(element => {
-      element.style.opacity = '0';
-      element.style.transform = 'translateY(20px)';
-      element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    });
-    
-    // Ereignislistener für Scrollen hinzufügen
-    window.addEventListener('scroll', animateOnScroll);
-    window.addEventListener('load', animateOnScroll);
-  </script>
+    </script>
 </body>
 </html>
