@@ -636,13 +636,34 @@ function showPage(pageName) {
     }
 }
 
-// Event-Listener für Navigation (assuming navItems is defined elsewhere)
-const navItems = document.querySelectorAll('.nav-item'); // Add this line to define navItems
+// Event-Listener für Navigation
+const navItems = document.querySelectorAll('.nav-item');
 navItems.forEach(item => {
     item.addEventListener('click', function() {
         const pageName = this.getAttribute('data-page');
         showPage(pageName);
     });
+});
+
+
+// Create Bot Button Event Listener
+document.getElementById('create-bot-btn').addEventListener('click', function() {
+    const createBotForm = document.getElementById('create-bot-form');
+    if (createBotForm) {
+        createBotForm.style.display = 'block';
+
+        // Reset form fields
+        document.getElementById('bot-username').value = '';
+        document.getElementById('bot-server').value = '';
+        document.getElementById('bot-port').value = '25565';
+        document.getElementById('bot-version').value = '1.20.4';
+
+        // Show form with animation
+        createBotForm.style.opacity = '0';
+        setTimeout(() => {
+            createBotForm.style.opacity = '1';
+        }, 50);
+    }
 });
 
 // Initial Dashboard-Seite anzeigen
