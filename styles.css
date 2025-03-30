@@ -9,7 +9,7 @@
 body {
     background-color: #121212;
     color: #e0e0e0;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="150" height="150" x="0" y="0" fill="%23131313" /><rect width="150" height="150" x="150" y="150" fill="%23131313" /><rect width="150" height="150" x="150" y="0" fill="%23111111" /><rect width="150" height="150" x="0" y="150" fill="%23111111" /></svg>');
+    background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUD8QevxsTKKcWyUNyLGG1nCInLiRk9Budvg&s');
     background-size: 300px 300px;
 }
 
