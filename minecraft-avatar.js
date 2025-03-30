@@ -5,34 +5,15 @@
  */
 
 const MinecraftAvatar = (function() {
-    // Verfügbare Skin-Typen
-    const availableSkinTypes = [
-        'steve', 'alex', 'zombie', 'villager', 'skeleton', 'creeper', 'enderman'
-    ];
-    
-    // Verfügbare Ansichten
-    const viewTypes = {
-        FACE: 'face',        // Nur Gesicht
-        HEAD: 'head',        // Kopf (mit Hut falls vorhanden)
-        BUST: 'bust',        // Oberkörper
-        FULL: 'full',        // Ganzer Körper
-        SKIN: 'skin'         // Flachen Skin anzeigen
-    };
-    
-    // Verfügbare Hintergründe
-    const backgroundTypes = {
-        TRANSPARENT: '',
-        GRASS: 'grass',
-        STONE: 'stone',
-        DIRT: 'dirt',
-        WOOD: 'wood',
-        NETHERRACK: 'netherrack',
-        WOOL: 'wool'
-    };
-    
-    // Cache für die generierten Avatare
+    // Cache für bereits geladene Avatare
     const avatarCache = {};
+
+    // Unterstützte Skin-Typen
+    const SKIN_TYPES = ['steve', 'alex', 'zombie', 'skeleton', 'creeper', 'enderman', 'pig', 'blaze'];
     
+    // Unterstützte Ansichten
+    const VIEWS = ['face', 'head', 'bust', 'full', 'skin'];
+
     /**
      * Generiert die URL für einen Avatar
      * @param {Object} options - Optionen für den Avatar
@@ -44,102 +25,80 @@ const MinecraftAvatar = (function() {
      * @returns {string} - Die generierte URL
      */
     function generateAvatarUrl(options) {
-        const defaults = {
-            username: undefined,
+        const defaultOptions = {
+            username: '',
             skinType: 'steve',
-            view: viewTypes.HEAD,
+            view: 'head',
             size: 100,
-            background: backgroundTypes.TRANSPARENT
+            background: ''
         };
         
-        const settings = { ...defaults, ...options };
+        // Optionen mit Standardwerten kombinieren
+        const settings = {...defaultOptions, ...options};
         
-        // Basis-URL für die Avatar-API
-        let baseUrl = 'https://mc-heads.net/avatar/';
+        // Basis-URL für die API
+        let url;
         
-        // Entweder Benutzernamen oder Skin-Typ verwenden
         if (settings.username) {
-            baseUrl += encodeURIComponent(settings.username);
+            // Avatar basierend auf Benutzernamen
+            url = `https://mc-heads.net/avatar/${settings.username}/${settings.size}`;
+            
+            // Ansichtstyp hinzufügen
+            if (settings.view !== 'face') {
+                if (settings.view === 'head') {
+                    url = `https://mc-heads.net/head/${settings.username}/${settings.size}`;
+                } else if (settings.view === 'bust') {
+                    url = `https://mc-heads.net/bust/${settings.username}/${settings.size}`;
+                } else if (settings.view === 'full') {
+                    url = `https://mc-heads.net/body/${settings.username}/${settings.size}`;
+                } else if (settings.view === 'skin') {
+                    url = `https://mc-heads.net/skin/${settings.username}`;
+                }
+            }
         } else {
-            // Für Standard-Skins (ohne Benutzernamen) verwenden wir bekannte Benutzernamen
-            // die das gewünschte Aussehen haben
-            switch(settings.skinType) {
-                case 'alex':
-                    baseUrl += 'MHF_Alex';
-                    break;
-                case 'zombie':
-                    baseUrl += 'MHF_Zombie';
-                    break;
-                case 'villager':
-                    baseUrl += 'MHF_Villager';
-                    break;
-                case 'skeleton':
-                    baseUrl += 'MHF_Skeleton';
-                    break;
-                case 'creeper':
-                    baseUrl += 'MHF_Creeper';
-                    break;
-                case 'enderman':
-                    baseUrl += 'MHF_Enderman';
-                    break;
-                case 'steve':
-                default:
-                    baseUrl += 'MHF_Steve';
-                    break;
+            // Avatar basierend auf Skin-Typ
+            const skinType = SKIN_TYPES.includes(settings.skinType) ? settings.skinType : 'steve';
+            
+            // Standardskin-URLs basierend auf Skin-Typ und Ansicht
+            if (settings.view === 'face' || settings.view === 'head') {
+                url = `https://mc-heads.net/head/${skinType}/${settings.size}`;
+            } else if (settings.view === 'bust') {
+                url = `https://mc-heads.net/bust/${skinType}/${settings.size}`;
+            } else if (settings.view === 'full') {
+                url = `https://mc-heads.net/body/${skinType}/${settings.size}`;
+            } else {
+                url = `https://mc-heads.net/avatar/${skinType}/${settings.size}`;
             }
         }
         
-        // Ansichtstyp festlegen
-        if (settings.view === viewTypes.FULL) {
-            baseUrl = baseUrl.replace('/avatar/', '/body/');
-        } else if (settings.view === viewTypes.BUST) {
-            baseUrl = baseUrl.replace('/avatar/', '/bust/');
-        } else if (settings.view === viewTypes.SKIN) {
-            baseUrl = baseUrl.replace('/avatar/', '/skin/');
+        // Hintergrund hinzufügen, wenn angegeben
+        if (settings.background && settings.view !== 'skin') {
+            url += `/${settings.background}`;
         }
         
-        // Größe und Hintergrund hinzufügen
-        baseUrl += `/${settings.size}`;
-        
-        if (settings.background) {
-            baseUrl += `/${settings.background}`;
-        }
-        
-        return baseUrl;
+        return url;
     }
-    
+
     /**
      * Lädt einen Avatar und speichert ihn im Cache
      * @param {Object} options - Avatar-Optionen
      * @returns {Promise<string>} - URL des Avatars
      */
     function loadAvatar(options) {
-        return new Promise((resolve) => {
-            const url = generateAvatarUrl(options);
-            const cacheKey = JSON.stringify(options);
-            
-            // Verwende gecachten Avatar, falls verfügbar
-            if (avatarCache[cacheKey]) {
-                resolve(avatarCache[cacheKey]);
-                return;
-            }
-            
-            // Ansonsten laden und cachen
-            const img = new Image();
-            img.onload = function() {
-                avatarCache[cacheKey] = url;
-                resolve(url);
-            };
-            img.onerror = function() {
-                // Bei Fehler Standardavatar zurückgeben
-                const fallbackUrl = generateAvatarUrl({...options, username: undefined, skinType: 'steve'});
-                avatarCache[cacheKey] = fallbackUrl;
-                resolve(fallbackUrl);
-            };
-            img.src = url;
-        });
+        const cacheKey = JSON.stringify(options);
+        
+        // Wenn der Avatar bereits im Cache ist, direkt zurückgeben
+        if (avatarCache[cacheKey]) {
+            return Promise.resolve(avatarCache[cacheKey]);
+        }
+        
+        // Ansonsten URL generieren und cachen
+        const url = generateAvatarUrl(options);
+        avatarCache[cacheKey] = url;
+        
+        return Promise.resolve(url);
     }
-    
+
     /**
      * Generiert ein HTML-Element mit einem Avatar
      * @param {Element} container - Das HTML-Element, in das der Avatar eingefügt werden soll
@@ -147,500 +106,268 @@ const MinecraftAvatar = (function() {
      * @returns {Promise<Element>} - Das erzeugte oder aktualisierte Element
      */
     function createAvatarElement(container, options) {
-        return loadAvatar(options).then(url => {
-            let imgElement;
-            
-            // Prüfen, ob der Container bereits ein Avatar-Bild enthält
-            const existingImg = container.querySelector('.minecraft-avatar-img');
-            if (existingImg) {
-                imgElement = existingImg;
-            } else {
-                imgElement = document.createElement('img');
-                imgElement.className = 'minecraft-avatar-img';
-                container.appendChild(imgElement);
-            }
-            
-            // Bild aktualisieren
-            imgElement.src = url;
-            imgElement.alt = options.username ? `${options.username}'s Minecraft Avatar` : `Minecraft ${options.skinType} Avatar`;
-            imgElement.width = imgElement.height = options.size || 100;
-            
-            return imgElement;
-        });
+        if (!container) return Promise.reject(new Error('Container-Element fehlt'));
+        
+        return loadAvatar(options)
+            .then(url => {
+                // Container leeren
+                container.innerHTML = '';
+                
+                // Avatar-Bild erstellen
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'Minecraft Avatar';
+                img.style.width = options.size + 'px';
+                img.style.height = options.size + 'px';
+                img.style.objectFit = 'contain';
+                
+                // Alle Optionen als Datensätze speichern für späteren Zugriff
+                Object.keys(options).forEach(key => {
+                    img.dataset[key] = options[key];
+                });
+                
+                // Zum Container hinzufügen
+                container.appendChild(img);
+                return container;
+            });
     }
-    
+
     /**
      * Erzeugt einen Avatar-Auswahl-Dialog
      * @param {Function} onSelect - Callback, wenn ein Avatar ausgewählt wurde
      * @returns {Element} - Das Dialog-Element
      */
     function createAvatarSelector(onSelect) {
+        // Dialog-Container erstellen
         const dialog = document.createElement('div');
-        dialog.className = 'minecraft-avatar-selector';
+        dialog.className = 'modal';
+        dialog.style.display = 'block';
         
-        // Überschrift
-        const title = document.createElement('h3');
-        title.textContent = 'Wähle deinen Bot-Avatar';
-        dialog.appendChild(title);
+        // Dialog-Inhalt erstellen
+        dialog.innerHTML = `
+            <div class="modal-content mc-container" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3>Avatar auswählen</h3>
+                    <button class="close-modal">×</button>
+                </div>
+                <div style="padding: 20px;">
+                    <div style="margin-bottom: 20px;">
+                        <label for="avatar-username" style="display: block; margin-bottom: 5px;">Minecraft-Benutzername:</label>
+                        <input type="text" id="avatar-username" placeholder="Optional: Benutzername eingeben" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.2); border: 1px solid #444; color: #fff; border-radius: 4px;">
+                        <p style="font-size: 12px; color: #aaa; margin-top: 5px;">Wenn du keinen Benutzernamen eingibst, wird ein Standard-Skin verwendet.</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px;">Skin-Typ:</label>
+                        <div id="skin-type-selector" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; margin-top: 10px;">
+                            ${SKIN_TYPES.map(type => `
+                                <div class="skin-option" data-skin-type="${type}" style="text-align: center; cursor: pointer; padding: 5px; border-radius: 4px; border: 2px solid transparent;">
+                                    <div class="avatar-preview" data-skin-type="${type}" style="width: 40px; height: 40px; margin: 0 auto;"></div>
+                                    <div style="font-size: 12px; margin-top: 5px;">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px;">Ansicht:</label>
+                        <div id="view-selector" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-top: 10px;">
+                            ${VIEWS.map(view => `
+                                <div class="view-option" data-view="${view}" style="text-align: center; cursor: pointer; padding: 5px; border-radius: 4px; border: 2px solid transparent;">
+                                    <div style="font-size: 12px; margin-top: 5px;">${view.charAt(0).toUpperCase() + view.slice(1)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px;">Vorschau:</label>
+                        <div style="display: flex; justify-content: center; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                            <div id="avatar-preview" style="width: 100px; height: 100px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button id="select-avatar-btn" class="action-btn">Avatar übernehmen</button>
+                    </div>
+                </div>
+            </div>
+        `;
         
-        // Tabs für Auswahl: Benutzername oder Standard-Skin
-        const tabs = document.createElement('div');
-        tabs.className = 'avatar-selector-tabs';
+        // Dialog hinzufügen und Animation anwenden
+        const modalContent = dialog.querySelector('.modal-content');
+        setTimeout(() => {
+            if (typeof MCAnimations !== 'undefined' && MCAnimations.openContainer) {
+                MCAnimations.openContainer(modalContent);
+            }
+        }, 10);
         
-        const usernameTab = document.createElement('button');
-        usernameTab.textContent = 'Minecraft-Name';
-        usernameTab.className = 'tab active';
-        usernameTab.dataset.tab = 'username';
+        // Currentt
+        let currentOptions = {
+            skinType: 'steve',
+            view: 'head',
+            size: 100,
+            background: ''
+        };
         
-        const skinTypeTab = document.createElement('button');
-        skinTypeTab.textContent = 'Standard-Skin';
-        skinTypeTab.className = 'tab';
-        skinTypeTab.dataset.tab = 'skinType';
-        
-        tabs.appendChild(usernameTab);
-        tabs.appendChild(skinTypeTab);
-        dialog.appendChild(tabs);
-        
-        // Container für Tab-Inhalte
-        const tabContents = document.createElement('div');
-        tabContents.className = 'tab-contents';
-        
-        // Benutzername-Tab-Inhalt
-        const usernameContent = document.createElement('div');
-        usernameContent.className = 'tab-content active';
-        usernameContent.dataset.tabContent = 'username';
-        
-        const usernameInput = document.createElement('input');
-        usernameInput.type = 'text';
-        usernameInput.placeholder = 'Minecraft-Benutzername eingeben';
-        usernameInput.className = 'avatar-username-input';
-        
-        const usernamePreview = document.createElement('div');
-        usernamePreview.className = 'avatar-preview';
-        
-        const usernameSubmit = document.createElement('button');
-        usernameSubmit.textContent = 'Avatar übernehmen';
-        usernameSubmit.className = 'avatar-submit-btn';
-        
-        usernameContent.appendChild(usernameInput);
-        usernameContent.appendChild(usernamePreview);
-        usernameContent.appendChild(usernameSubmit);
-        
-        // Skin-Typ-Tab-Inhalt
-        const skinTypeContent = document.createElement('div');
-        skinTypeContent.className = 'tab-content';
-        skinTypeContent.dataset.tabContent = 'skinType';
-        
-        const skinGrid = document.createElement('div');
-        skinGrid.className = 'skin-type-grid';
-        
-        // Skin-Typen hinzufügen
-        availableSkinTypes.forEach(skin => {
-            const skinOption = document.createElement('div');
-            skinOption.className = 'skin-option';
-            skinOption.dataset.skinType = skin;
-            
-            const skinPreview = document.createElement('div');
-            skinPreview.className = 'skin-preview';
-            
-            // Avatar für den Skin laden
-            createAvatarElement(skinPreview, {
-                skinType: skin,
-                size: 80
+        // Event listeners hinzufügen, nachdem der Dialog zum DOM hinzugefügt wurde
+        setTimeout(() => {
+            // Schließen-Button
+            const closeBtn = dialog.querySelector('.close-modal');
+            closeBtn.addEventListener('click', () => {
+                dialog.remove();
             });
             
-            const skinLabel = document.createElement('span');
-            skinLabel.className = 'skin-label';
-            skinLabel.textContent = skin.charAt(0).toUpperCase() + skin.slice(1);
+            // Avatar-Vorschau initialisieren
+            const previewContainer = dialog.querySelector('#avatar-preview');
+            updatePreview();
             
-            skinOption.appendChild(skinPreview);
-            skinOption.appendChild(skinLabel);
-            skinGrid.appendChild(skinOption);
-        });
-        
-        skinTypeContent.appendChild(skinGrid);
-        
-        // Für beide Tab-Inhalte
-        const viewSelector = document.createElement('div');
-        viewSelector.className = 'view-selector';
-        viewSelector.innerHTML = `
-            <label>Avatar-Ansicht:</label>
-            <select class="view-select">
-                <option value="${viewTypes.HEAD}">Kopf</option>
-                <option value="${viewTypes.FACE}">Gesicht</option>
-                <option value="${viewTypes.BUST}">Oberkörper</option>
-                <option value="${viewTypes.FULL}">Ganzer Körper</option>
-            </select>
-        `;
-        
-        const backgroundSelector = document.createElement('div');
-        backgroundSelector.className = 'background-selector';
-        backgroundSelector.innerHTML = `
-            <label>Hintergrund:</label>
-            <select class="background-select">
-                <option value="${backgroundTypes.TRANSPARENT}">Transparent</option>
-                <option value="${backgroundTypes.GRASS}">Gras</option>
-                <option value="${backgroundTypes.STONE}">Stein</option>
-                <option value="${backgroundTypes.DIRT}">Erde</option>
-                <option value="${backgroundTypes.WOOD}">Holz</option>
-                <option value="${backgroundTypes.NETHERRACK}">Netherrack</option>
-                <option value="${backgroundTypes.WOOL}">Wolle</option>
-            </select>
-        `;
-        
-        // Tab-Inhalte zum Container hinzufügen
-        tabContents.appendChild(usernameContent);
-        tabContents.appendChild(skinTypeContent);
-        tabContents.appendChild(viewSelector);
-        tabContents.appendChild(backgroundSelector);
-        dialog.appendChild(tabContents);
-        
-        // Buttons für Abbrechen und Speichern
-        const actions = document.createElement('div');
-        actions.className = 'avatar-actions';
-        
-        const cancelBtn = document.createElement('button');
-        cancelBtn.textContent = 'Abbrechen';
-        cancelBtn.className = 'avatar-cancel-btn';
-        
-        const saveBtn = document.createElement('button');
-        saveBtn.textContent = 'Avatar speichern';
-        saveBtn.className = 'avatar-save-btn';
-        
-        actions.appendChild(cancelBtn);
-        actions.appendChild(saveBtn);
-        dialog.appendChild(actions);
-        
-        // Event-Listener
-        // Tabs wechseln
-        tabs.addEventListener('click', (e) => {
-            if (e.target.classList.contains('tab')) {
-                // Aktive Klasse entfernen
-                tabs.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-                tabContents.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            // Skin-Optionen initialisieren
+            const skinOptions = dialog.querySelectorAll('.skin-option');
+            skinOptions.forEach(option => {
+                const skinType = option.dataset.skinType;
+                const previewContainer = option.querySelector('.avatar-preview');
                 
-                // Aktive Klasse hinzufügen
-                e.target.classList.add('active');
-                const activeContent = tabContents.querySelector(`[data-tab-content="${e.target.dataset.tab}"]`);
-                if (activeContent) activeContent.classList.add('active');
-            }
-        });
-        
-        // Benutzername-Vorschau
-        let debounceTimer;
-        usernameInput.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
+                // Avatar für jede Option erstellen
+                createAvatarElement(previewContainer, {
+                    skinType: skinType,
+                    view: 'head',
+                    size: 40
+                });
+                
+                // Klick-Event
+                option.addEventListener('click', () => {
+                    // Aktive Markierung bei allen entfernen
+                    skinOptions.forEach(opt => opt.style.borderColor = 'transparent');
+                    // Aktive Markierung hinzufügen
+                    option.style.borderColor = '#1eff00';
+                    
+                    // Option aktualisieren
+                    currentOptions.skinType = skinType;
+                    // Username löschen, da jetzt ein Skin-Typ ausgewählt ist
+                    const usernameInput = dialog.querySelector('#avatar-username');
+                    usernameInput.value = '';
+                    currentOptions.username = '';
+                    
+                    // Vorschau aktualisieren
+                    updatePreview();
+                });
+                
+                // Standard-Skin markieren
+                if (skinType === currentOptions.skinType) {
+                    option.style.borderColor = '#1eff00';
+                }
+            });
+            
+            // Ansichts-Optionen initialisieren
+            const viewOptions = dialog.querySelectorAll('.view-option');
+            viewOptions.forEach(option => {
+                const view = option.dataset.view;
+                
+                // Klick-Event
+                option.addEventListener('click', () => {
+                    // Aktive Markierung bei allen entfernen
+                    viewOptions.forEach(opt => opt.style.borderColor = 'transparent');
+                    // Aktive Markierung hinzufügen
+                    option.style.borderColor = '#1eff00';
+                    
+                    // Option aktualisieren
+                    currentOptions.view = view;
+                    
+                    // Vorschau aktualisieren
+                    updatePreview();
+                });
+                
+                // Standard-Ansicht markieren
+                if (view === currentOptions.view) {
+                    option.style.borderColor = '#1eff00';
+                }
+            });
+            
+            // Benutzername-Input
+            const usernameInput = dialog.querySelector('#avatar-username');
+            usernameInput.addEventListener('input', () => {
                 const username = usernameInput.value.trim();
+                currentOptions.username = username;
+                
+                // Wenn ein Benutzername eingegeben wird, Skin-Typ deaktivieren
                 if (username) {
-                    createAvatarElement(usernamePreview, {
-                        username: username,
-                        size: 150,
-                        view: viewSelector.querySelector('.view-select').value,
-                        background: backgroundSelector.querySelector('.background-select').value
-                    });
+                    skinOptions.forEach(opt => opt.style.borderColor = 'transparent');
+                    currentOptions.skinType = '';
+                } else {
+                    // Wenn leer, Standard-Skin auswählen
+                    const defaultSkin = dialog.querySelector(`.skin-option[data-skin-type="steve"]`);
+                    defaultSkin.style.borderColor = '#1eff00';
+                    currentOptions.skinType = 'steve';
                 }
-            }, 500);
-        });
-        
-        // Skin-Typ auswählen
-        skinGrid.addEventListener('click', (e) => {
-            const skinOption = e.target.closest('.skin-option');
-            if (skinOption) {
-                skinGrid.querySelectorAll('.skin-option').forEach(option => option.classList.remove('selected'));
-                skinOption.classList.add('selected');
-            }
-        });
-        
-        // Ansicht ändern
-        viewSelector.querySelector('.view-select').addEventListener('change', (e) => {
-            if (usernameTab.classList.contains('active') && usernameInput.value.trim()) {
-                createAvatarElement(usernamePreview, {
-                    username: usernameInput.value.trim(),
-                    size: 150,
-                    view: e.target.value,
-                    background: backgroundSelector.querySelector('.background-select').value
+                
+                // Vorschau aktualisieren
+                updatePreview();
+            });
+            
+            // Auswahl-Button
+            const selectBtn = dialog.querySelector('#select-avatar-btn');
+            selectBtn.addEventListener('click', () => {
+                // Callback aufrufen und Dialog schließen
+                if (onSelect) {
+                    onSelect({...currentOptions});
+                }
+                dialog.remove();
+            });
+            
+            // Funktion zur Aktualisierung der Vorschau
+            function updatePreview() {
+                createAvatarElement(previewContainer, {
+                    ...currentOptions,
+                    size: 100
                 });
             }
-        });
-        
-        // Hintergrund ändern
-        backgroundSelector.querySelector('.background-select').addEventListener('change', (e) => {
-            if (usernameTab.classList.contains('active') && usernameInput.value.trim()) {
-                createAvatarElement(usernamePreview, {
-                    username: usernameInput.value.trim(),
-                    size: 150,
-                    view: viewSelector.querySelector('.view-select').value,
-                    background: e.target.value
-                });
-            }
-        });
-        
-        // Avatar speichern
-        saveBtn.addEventListener('click', () => {
-            let avatarOptions = {
-                view: viewSelector.querySelector('.view-select').value,
-                background: backgroundSelector.querySelector('.background-select').value,
-                size: 100 // Standardgröße
-            };
             
-            if (usernameTab.classList.contains('active')) {
-                avatarOptions.username = usernameInput.value.trim();
-                if (!avatarOptions.username) {
-                    alert('Bitte gib einen Minecraft-Benutzernamen ein.');
-                    return;
-                }
-            } else {
-                const selectedSkin = skinGrid.querySelector('.skin-option.selected');
-                if (!selectedSkin) {
-                    alert('Bitte wähle einen Skin-Typ aus.');
-                    return;
-                }
-                avatarOptions.skinType = selectedSkin.dataset.skinType;
-            }
-            
-            if (typeof onSelect === 'function') {
-                onSelect(avatarOptions);
-            }
-            
-            // Dialog entfernen
-            dialog.remove();
-        });
-        
-        // Abbrechen
-        cancelBtn.addEventListener('click', () => {
-            dialog.remove();
-        });
+        }, 100);
         
         return dialog;
     }
-    
+
     /**
      * Generiert CSS für Avatar-Komponenten
      * @returns {string} CSS als String
      */
     function generateCSS() {
         return `
-            .minecraft-avatar-img {
-                image-rendering: pixelated;
-                border-radius: 4px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            }
-            
-            .minecraft-avatar-selector {
-                background-color: rgba(0, 0, 0, 0.85);
-                border: 2px solid #555;
-                border-radius: 6px;
-                padding: 20px;
-                width: 100%;
-                max-width: 600px;
-                color: #e0e0e0;
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                z-index: 1000;
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            }
-            
-            .avatar-selector-tabs {
-                display: flex;
-                margin-bottom: 15px;
-                border-bottom: 2px solid #444;
-            }
-            
-            .avatar-selector-tabs .tab {
-                background: transparent;
-                border: none;
-                color: #aaa;
-                padding: 8px 16px;
-                cursor: pointer;
-                font-size: 1rem;
-                border-bottom: 2px solid transparent;
-                margin-bottom: -2px;
-            }
-            
-            .avatar-selector-tabs .tab.active {
-                color: #1eff00;
-                border-bottom-color: #1eff00;
-            }
-            
-            .tab-contents {
-                margin-bottom: 20px;
-            }
-            
-            .tab-content {
-                display: none;
-            }
-            
-            .tab-content.active {
-                display: block;
-            }
-            
-            .avatar-username-input {
-                width: 100%;
+            .avatar-selector {
                 padding: 10px;
-                background-color: rgba(0, 0, 0, 0.4);
-                border: 1px solid #555;
-                color: #fff;
-                border-radius: 4px;
-                margin-bottom: 15px;
+                background-color: rgba(0, 0, 0, 0.7);
+                border-radius: 8px;
+                border: 1px solid #333;
             }
             
             .avatar-preview {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                min-height: 150px;
-                margin-bottom: 15px;
-                background-color: rgba(0, 0, 0, 0.2);
-                border-radius: 4px;
             }
             
-            .avatar-submit-btn {
-                background-color: #1eff00;
-                color: #000;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-weight: bold;
-            }
-            
-            .skin-type-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                gap: 15px;
-                margin-bottom: 15px;
-            }
-            
-            .skin-option {
-                background-color: rgba(0, 0, 0, 0.3);
-                border: 2px solid #555;
-                border-radius: 4px;
-                padding: 10px;
-                text-align: center;
-                cursor: pointer;
-                transition: all 0.2s;
-            }
-            
-            .skin-option:hover {
-                background-color: rgba(30, 255, 0, 0.1);
-                border-color: rgba(30, 255, 0, 0.5);
-            }
-            
-            .skin-option.selected {
-                background-color: rgba(30, 255, 0, 0.1);
-                border-color: #1eff00;
-            }
-            
-            .skin-preview {
-                display: flex;
-                justify-content: center;
-                margin-bottom: 10px;
-            }
-            
-            .skin-label {
-                font-size: 0.9rem;
-                color: #ddd;
-            }
-            
-            .view-selector, .background-selector {
-                margin-top: 15px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            
-            .view-selector label, .background-selector label {
-                min-width: 120px;
-            }
-            
-            .view-select, .background-select {
-                background-color: rgba(0, 0, 0, 0.4);
-                border: 1px solid #555;
-                color: #fff;
-                padding: 8px;
-                border-radius: 4px;
-                flex: 1;
-            }
-            
-            .avatar-actions {
-                display: flex;
-                justify-content: flex-end;
-                gap: 10px;
-                margin-top: 20px;
-            }
-            
-            .avatar-cancel-btn, .avatar-save-btn {
-                padding: 10px 15px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-weight: bold;
-            }
-            
-            .avatar-cancel-btn {
-                background-color: transparent;
-                border: 1px solid #555;
-                color: #ccc;
-            }
-            
-            .avatar-save-btn {
-                background-color: #1eff00;
-                border: none;
-                color: #000;
-            }
-            
-            /* Mobil-Anpassungen */
-            @media (max-width: 600px) {
-                .minecraft-avatar-selector {
-                    width: 90%;
-                }
-                
-                .skin-type-grid {
-                    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-                }
-                
-                .view-selector, .background-selector {
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-                
-                .view-selector label, .background-selector label {
-                    margin-bottom: 5px;
-                }
+            .skin-option:hover, .view-option:hover {
+                background: rgba(30, 255, 0, 0.1);
             }
         `;
     }
-    
-    // Füge CSS zum Dokument hinzu
+
+    // CSS zum Dokument hinzufügen
     function injectCSS() {
-        if (!document.getElementById('minecraft-avatar-styles')) {
-            const styleElement = document.createElement('style');
-            styleElement.id = 'minecraft-avatar-styles';
-            styleElement.textContent = generateCSS();
-            document.head.appendChild(styleElement);
-        }
+        const style = document.createElement('style');
+        style.textContent = generateCSS();
+        document.head.appendChild(style);
     }
-    
-    // Initialisiere die CSS-Styles beim Laden
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', injectCSS);
-    } else {
-        injectCSS();
-    }
-    
+
+    // CSS beim Laden der Seite einfügen
+    injectCSS();
+
     // Öffentliche API
     return {
         generateAvatarUrl,
         loadAvatar,
         createAvatarElement,
-        createAvatarSelector,
-        availableSkinTypes,
-        viewTypes,
-        backgroundTypes
+        createAvatarSelector
     };
 })();
-
-// Globale Verfügbarkeit für HTML-Inline-Skripte
-window.MinecraftAvatar = MinecraftAvatar;
