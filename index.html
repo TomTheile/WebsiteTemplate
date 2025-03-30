@@ -171,13 +171,7 @@
                         const user = db.users?.find(user => user.email === email && user.password === password);
                         
                         if (user) {
-                            // Prüfen, ob die E-Mail-Adresse verifiziert wurde
-                            if (!user.verified) {
-                                const errorMessage = createStatusMessage('Bitte bestätige zuerst deine E-Mail-Adresse. Prüfe deinen Posteingang oder registriere dich erneut.', true);
-                                loginForm.appendChild(errorMessage);
-                                return;
-                            }
-                            
+                            // E-Mail-Verifikation ist nicht mehr erforderlich
                             loginSuccess = true;
                             localStorage.setItem('auth_token', 'test_token_' + Date.now());
                             localStorage.setItem('user_id', user.uid);
@@ -194,13 +188,7 @@
                             const oldUser = registeredUsers.find(user => user.email === email && user.password === password);
                             
                             if (oldUser) {
-                                // Prüfen, ob die E-Mail-Adresse verifiziert wurde
-                                if (!oldUser.verified) {
-                                    const errorMessage = createStatusMessage('Bitte bestätige zuerst deine E-Mail-Adresse. Prüfe deinen Posteingang oder registriere dich erneut.', true);
-                                    loginForm.appendChild(errorMessage);
-                                    return;
-                                }
-                                
+                                // E-Mail-Verifikation ist nicht mehr erforderlich
                                 loginSuccess = true;
                                 localStorage.setItem('auth_token', 'test_token_' + Date.now());
                                 localStorage.setItem('user_id', oldUser.uid);
@@ -323,90 +311,15 @@
                     // Datenbank speichern
                     localStorage.setItem('afk_bot_db', JSON.stringify(db));
                     
-                    // Benutzer erstellt, nun E-Mail-Verifizierung vorbereiten
-                    
-                    // Simulierte E-Mail-Verifikation
-                    // In einer echten Anwendung würde sendVerificationEmail aufgerufen werden
-                    // E-Mail-Verifizierungstoken erstellen
-                    const token = 'verify_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
-                    
-                    // Token in der Datenbank speichern
-                    if (!db.verificationTokens) {
-                        db.verificationTokens = [];
-                    }
-                    
-                    db.verificationTokens.push({
-                        token: token,
-                        userId: userId,
-                        email: email,
-                        created: new Date().toISOString(),
-                        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 Stunden gültig
-                    });
-                    
-                    // Datenbank speichern
-                    localStorage.setItem('afk_bot_db', JSON.stringify(db));
-                    
-                    // Erstelle den Verifizierungslink
-                    const baseUrl = window.location.origin;
-                    const verifyUrl = `${baseUrl}/verify.html?token=${token}&user=${userId}&email=${encodeURIComponent(email)}`;
-                    
-                    // E-Mail im localStorage simulieren
-                    const emailContent = {
-                        to: email,
-                        subject: "Bestätige deine E-Mail-Adresse für Herobrine AFK Bot",
-                        html: `
-                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                                <h2 style="color: #1eff00;">Herobrine AFK Bot - E-Mail-Bestätigung</h2>
-                                <p>Hallo ${username},</p>
-                                <p>vielen Dank für deine Registrierung bei Herobrine AFK Bot. Bitte klicke auf den folgenden Link, um deine E-Mail-Adresse zu bestätigen:</p>
-                                <p><a href="${verifyUrl}" style="display: inline-block; padding: 10px 20px; background-color: #1eff00; color: #000; text-decoration: none; border-radius: 5px;">E-Mail bestätigen</a></p>
-                                <p>Oder kopiere diese URL in deinen Browser:</p>
-                                <p>${verifyUrl}</p>
-                                <p>Dieser Link ist 24 Stunden gültig.</p>
-                                <p>Bei Fragen steht unser Support-Team gerne zur Verfügung.</p>
-                                <p>Mit freundlichen Grüßen,<br>Dein Herobrine AFK Bot Team</p>
-                            </div>
-                        `,
-                        sent_at: new Date().toISOString()
-                    };
-                    
-                    // E-Mails im localStorage speichern
-                    let sentEmails = [];
-                    try {
-                        const storedEmails = localStorage.getItem('sent_emails');
-                        if (storedEmails) {
-                            sentEmails = JSON.parse(storedEmails);
-                        }
-                    } catch (error) {
-                        console.error('Fehler beim Lesen gesendeter E-Mails:', error);
-                    }
-                    
-                    sentEmails.push(emailContent);
-                    localStorage.setItem('sent_emails', JSON.stringify(sentEmails));
-                    
-                    // Debug-Info in der Konsole ausgeben
-                    console.log('--------------- VERIFIZIERUNGS-LINK ---------------');
-                    console.log(verifyUrl);
-                    console.log('--------------------------------------------------');
+                    // Keine E-Mail-Verifizierung mehr erforderlich, der Benutzer ist automatisch verifiziert
                     
                     // Erfolgreiche Registrierung anzeigen
                     const successMessage = createStatusMessage(
-                        'Registrierung erfolgreich! Bitte überprüfe deine E-Mails zur Bestätigung deines Kontos.'
+                        'Registrierung erfolgreich! Du kannst dich jetzt anmelden.'
                     );
                     registerForm.appendChild(successMessage);
                     
-                    // Zeige dem Benutzer die Bestätigungsseite direkt an (Demo-Modus)
-                    const demoVerifyUrl = `${baseUrl}/verify.html?demo=true&token=${token}&user=${userId}&email=${encodeURIComponent(email)}`;
-                    
-                    // Zeige dem Benutzer den Link als Alert, damit er ihn leicht kopieren kann
-                    setTimeout(() => {
-                        const response = confirm(`Du hast eine Bestätigungs-E-Mail erhalten!\n\nMöchtest du die Bestätigungsseite jetzt öffnen um den Prozess abzuschließen?`);
-                        if (response) {
-                            window.open(demoVerifyUrl, '_blank');
-                        } else {
-                            alert(`Kein Problem! Du kannst deine E-Mail später bestätigen.\nVerwende dazu diesen Link:\n\n${verifyUrl}`);
-                        }
-                    }, 800);
+                    // Keine E-Mail-Verifizierung mehr erforderlich
                     
                     // Auch im alten registered_users Array speichern für Kompatibilität
                     try {
@@ -433,8 +346,8 @@
                 
                 // Nach kurzer Zeit zum Login zurückkehren
                 setTimeout(() => {
-                    loginTab.click();
-                }, 3000);
+                    loginTab.click(); // Zum Login-Tab wechseln, weil die Registrierung abgeschlossen ist
+                }, 1500);
                 
                 // Versuche trotzdem die API-Anfrage, falls der Server läuft
                 try {

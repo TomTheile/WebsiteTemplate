@@ -224,7 +224,7 @@ const APIMock = (function() {
         
         return {
             success: true,
-            message: 'Registrierung erfolgreich! Bitte überprüfe deine E-Mails zur Bestätigung deines Kontos.'
+            message: 'Registrierung erfolgreich! Du kannst dich jetzt anmelden.'
         };
     }
 
@@ -241,7 +241,7 @@ const APIMock = (function() {
         
         return {
             success: true,
-            message: 'Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail zum Zurücksetzen des Passworts gesendet.'
+            message: 'Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde ein Link zum Zurücksetzen des Passworts gesendet.'
         };
     }
 
