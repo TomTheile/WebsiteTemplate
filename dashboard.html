@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="minecraft-background.css">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="minecraft-avatar.js"></script>
     <style>
         /* Bot Mood Module Styles wird dynamisch generiert */
         
@@ -1099,6 +1100,13 @@
                                     <option value="1.8.9">1.8.9</option>
                                 </select>
                             </div>
+                            <div class="form-group">
+                                <label for="bot-avatar">Bot-Avatar</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <div id="bot-avatar-preview" style="width: 80px; height: 80px; background-color: rgba(0,0,0,0.3); border-radius: 5px; display: flex; justify-content: center; align-items: center;"></div>
+                                    <button type="button" id="change-avatar-btn" class="action-btn secondary" style="flex: 1; height: 40px;">Avatar anpassen</button>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="form-grid">
@@ -1399,6 +1407,8 @@
             const upgradeAccountBtn = document.getElementById('upgrade-account-btn');
             const navItems = document.querySelectorAll('.nav-item');
             const dashboardPages = document.querySelectorAll('.dashboard-page');
+            const changeAvatarBtn = document.getElementById('change-avatar-btn');
+            const botAvatarPreview = document.getElementById('bot-avatar-preview');
             
             // Benutzerinformationen anzeigen
             const username = localStorage.getItem('username') || 'Benutzer';
@@ -1431,6 +1441,16 @@
                 const version = document.getElementById('bot-version').value;
                 const autoReconnect = document.getElementById('bot-auto-reconnect').checked;
                 const antiAFK = document.getElementById('bot-anti-afk').checked;
+                // Avatar-Daten aus dem aktuellen Avatar-Element auslesen
+                const avatarElement = botAvatarPreview.querySelector('img');
+                const avatarOptions = avatarElement ? 
+                    {
+                        skinType: avatarElement.dataset.skinType || 'steve',
+                        view: avatarElement.dataset.view || 'head',
+                        background: avatarElement.dataset.background || '',
+                        username: avatarElement.dataset.username || ''
+                    } : 
+                    { skinType: 'steve', view: 'head', background: '', username: '' };
                 
                 if (!username || !server) {
                     alert('Bitte gib einen Benutzernamen und eine Server-Adresse ein.');
@@ -1451,6 +1471,7 @@
                         version,
                         autoReconnect,
                         antiAFK,
+                        avatar: avatarOptions, // Avatar-Einstellungen hinzufügen
                         token // Token für die Authentifizierung
                     })
                 })
@@ -1517,6 +1538,37 @@
                 });
             });
             
+            // Avatar-Auswahl-Button
+            if (changeAvatarBtn) {
+                // Standard-Avatar-Optionen für den Bot
+                let currentAvatarOptions = {
+                    skinType: 'steve',
+                    view: 'head',
+                    background: '',
+                    size: 80
+                };
+                
+                // Standard-Avatar in der Vorschau anzeigen
+                MinecraftAvatar.createAvatarElement(botAvatarPreview, currentAvatarOptions);
+                
+                // Event-Listener für den Avatar-Auswahl-Button
+                changeAvatarBtn.addEventListener('click', function() {
+                    const dialog = MinecraftAvatar.createAvatarSelector(function(selectedOptions) {
+                        // Avatar-Optionen speichern
+                        currentAvatarOptions = selectedOptions;
+                        
+                        // Avatar-Vorschau aktualisieren
+                        MinecraftAvatar.createAvatarElement(botAvatarPreview, {
+                            ...selectedOptions,
+                            size: 80 // Immer auf 80px für die Vorschau
+                        });
+                    });
+                    
+                    // Dialog zum Body hinzufügen
+                    document.body.appendChild(dialog);
+                });
+            }
+            
             // Dashboard beim Laden aktualisieren
             refreshDashboard();
             
@@ -1563,7 +1615,25 @@
                         noBotMessage.style.display = 'none';
                         
                         // Bot-Karten erstellen
+                        // Nachträglich Avatare für alle Bot-Karten erstellen
+                        const renderBotAvatars = () => {
+                            data.bots.forEach(bot => {
+                                const avatarContainer = document.getElementById('bot-avatar-' + bot.id);
+                                if (avatarContainer) {
+                                    // Avatar mit den Einstellungen des Bots erstellen
+                                    MinecraftAvatar.createAvatarElement(avatarContainer, {
+                                        ...bot.avatar,
+                                        size: 40
+                                    });
+                                }
+                            });
+                        };
+                        
                         data.bots.forEach(bot => {
+                            // Stellen Sie sicher, dass jeder Bot ein Avatar-Objekt hat
+                            if (!bot.avatar) {
+                                bot.avatar = { skinType: 'steve', view: 'head', background: '' };
+                            }
                             // Vorhandene Karte finden oder neue erstellen
                             let botCard = document.getElementById('bot-' + bot.id);
                             
@@ -1602,9 +1672,13 @@
                             BotAnimations.animateStatusTransition(bot.id, botCard, botMetrics);
                             
                             // Karten-Inhalt aktualisieren
+                            // Avatar-URL basierend auf den Einstellungen des Bots erstellen
+                            const avatarOptions = bot.avatar || { skinType: 'steve', view: 'head' };
+                            
                             botCard.innerHTML = `
                                 <div class="bot-status ${bot.status}"></div>
-                                <h4 class="bot-name">${bot.username}</h4>
+                                <div style="position: absolute; top: 10px; left: 10px; width: 40px; height: 40px;" id="bot-avatar-${bot.id}"></div>
+                                <h4 class="bot-name" style="margin-left: 50px;">${bot.username}</h4>
                                 <p class="bot-server">${bot.server}</p>
                                 
                                 <!-- Bot-Stimmungs- und Leistungsindikatoren mit Animationsunterstützung -->

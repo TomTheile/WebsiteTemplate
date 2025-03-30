@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Avatar Generator - Demo</title>
+    <link rel="stylesheet" href="minecraft-background.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body.minecraft-background {
+            color: #e0e0e0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        h1, h2, h3 {
+            margin-bottom: 20px;
+            color: #1eff00;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .demo-section {
+            background-color: rgba(0, 0, 0, 0.75);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        button {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3a3a3a;
+        }
+        
+        button.primary {
+            background-color: #1eff00;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        button.primary:hover {
+            background-color: #17cc00;
+        }
+        
+        .flex-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .options-column {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .preview-column {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        
+        .option-group {
+            margin-bottom: 20px;
+        }
+        
+        .option-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1eff00;
+        }
+        
+        .option-group input, .option-group select {
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 4px;
+        }
+        
+        .option-group button {
+            margin-top: 10px;
+        }
+        
+        .preview-box {
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid #555;
+            border-radius: 6px;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .preview-label {
+            margin-bottom: 15px;
+            color: #1eff00;
+            font-weight: bold;
+        }
+        
+        .preview-image {
+            margin-bottom: 15px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .current-info {
+            width: 100%;
+            margin-top: 20px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .info-key {
+            color: #aaa;
+        }
+        
+        .info-value {
+            color: #1eff00;
+            font-weight: bold;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        
+        .button-row button {
+            flex: 1;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .gallery-item {
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid #444;
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-3px);
+            border-color: #1eff00;
+            box-shadow: 0 3px 10px rgba(30, 255, 0, 0.3);
+        }
+        
+        .gallery-img {
+            width: 100%;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .gallery-name {
+            padding: 8px;
+            width: 100%;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: #ddd;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .gallery-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .gallery-section.expanded {
+            max-height: 1000px;
+        }
+        
+        .gallery-toggle {
+            width: 100%;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            color: #1eff00;
+        }
+        
+        .gallery-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .flex-row {
+                flex-direction: column;
+            }
+            
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body class="minecraft-background">
+    <div class="container">
+        <h1>Minecraft Avatar Generator</h1>
+        <p>
+            Erzeuge benutzerdefinierte Minecraft-Avatare für deine Bots. Gib einen Minecraft-Benutzernamen ein
+            oder wähle einen der Standard-Skin-Typen.
+        </p>
+        
+        <div class="demo-section">
+            <h2>Avatar Generator</h2>
+            
+            <div class="flex-row">
+                <div class="options-column">
+                    <div class="option-group">
+                        <label for="username-input">Minecraft-Benutzername:</label>
+                        <input type="text" id="username-input" placeholder="z.B. Notch, Jeb_">
+                        <button id="load-username-btn">Avatar laden</button>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label for="skin-type-select">Oder Standard-Skin wählen:</label>
+                        <select id="skin-type-select">
+                            <option value="steve">Steve</option>
+                            <option value="alex">Alex</option>
+                            <option value="zombie">Zombie</option>
+                            <option value="villager">Dorfbewohner</option>
+                            <option value="skeleton">Skelett</option>
+                            <option value="creeper">Creeper</option>
+                            <option value="enderman">Enderman</option>
+                        </select>
+                        <button id="load-skin-btn">Skin laden</button>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label for="view-type-select">Ansicht:</label>
+                        <select id="view-type-select">
+                            <option value="head">Kopf</option>
+                            <option value="face">Gesicht</option>
+                            <option value="bust">Oberkörper</option>
+                            <option value="full">Ganzer Körper</option>
+                            <option value="skin">Skin (flach)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label for="background-select">Hintergrund:</label>
+                        <select id="background-select">
+                            <option value="">Transparent</option>
+                            <option value="grass">Gras</option>
+                            <option value="stone">Stein</option>
+                            <option value="dirt">Erde</option>
+                            <option value="wood">Holz</option>
+                            <option value="netherrack">Netherrack</option>
+                            <option value="wool">Wolle</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label for="size-input">Größe (in Pixeln):</label>
+                        <input type="number" id="size-input" min="16" max="512" value="150">
+                    </div>
+                    
+                    <button id="update-preview-btn" class="primary">Vorschau aktualisieren</button>
+                </div>
+                
+                <div class="preview-column">
+                    <div class="preview-box">
+                        <div class="preview-label">Avatar-Vorschau</div>
+                        <div class="preview-image" id="avatar-preview">
+                            <!-- Avatar wird hier geladen -->
+                        </div>
+                        
+                        <div class="current-info">
+                            <div class="info-row">
+                                <span class="info-key">Benutzername:</span>
+                                <span class="info-value" id="current-username">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-key">Skin-Typ:</span>
+                                <span class="info-value" id="current-skin-type">Steve</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-key">Ansicht:</span>
+                                <span class="info-value" id="current-view">Kopf</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-key">Hintergrund:</span>
+                                <span class="info-value" id="current-background">Transparent</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-key">Größe:</span>
+                                <span class="info-value" id="current-size">150px</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-row">
+                        <button id="open-selector-btn" class="primary">Avatar-Auswahl öffnen</button>
+                        <button id="copy-url-btn">URL kopieren</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="gallery-toggle" id="gallery-toggle">
+                ▼ Beispiel-Galerie anzeigen ▼
+            </div>
+            
+            <div class="gallery-section" id="gallery-section">
+                <h3>Beispiel-Avatare</h3>
+                <div class="gallery" id="example-gallery">
+                    <!-- Beispiele werden per JavaScript geladen -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Integration in dein Projekt</h2>
+            <p>
+                Um den Avatar-Generator in dein Projekt einzubinden, füge einfach die folgende 
+                JavaScript-Datei in dein HTML ein:
+            </p>
+            
+            <div style="background-color: rgba(0, 0, 0, 0.4); padding: 15px; border-radius: 4px; margin: 15px 0;">
+                <code>&lt;script src="minecraft-avatar.js"&gt;&lt;/script&gt;</code>
+            </div>
+            
+            <p>
+                Dann kannst du die API verwenden, um Avatare zu erstellen:
+            </p>
+            
+            <div style="background-color: rgba(0, 0, 0, 0.4); padding: 15px; border-radius: 4px; margin: 15px 0; white-space: pre; overflow-x: auto; font-family: monospace;">
+<code>// Avatar-Auswahldialog öffnen
+const dialog = MinecraftAvatar.createAvatarSelector(function(selectedOptions) {
+    console.log("Ausgewählte Avatar-Optionen:", selectedOptions);
+    
+    // Avatar in einen Container einfügen
+    const container = document.getElementById('my-avatar-container');
+    MinecraftAvatar.createAvatarElement(container, selectedOptions);
+});
+document.body.appendChild(dialog);
+
+// Oder: Direkt einen Avatar anzeigen
+const container = document.getElementById('my-avatar-container');
+MinecraftAvatar.createAvatarElement(container, {
+    username: 'Notch',
+    view: 'head',
+    size: 100,
+    background: 'grass'
+});</code>
+            </div>
+            
+            <a href="dashboard.html" style="display: inline-block; margin-top: 20px; color: #1eff00; text-decoration: none;">
+                Zurück zum Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <script src="minecraft-avatar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elemente aus dem DOM abrufen
+            const usernameInput = document.getElementById('username-input');
+            const skinTypeSelect = document.getElementById('skin-type-select');
+            const viewTypeSelect = document.getElementById('view-type-select');
+            const backgroundSelect = document.getElementById('background-select');
+            const sizeInput = document.getElementById('size-input');
+            const avatarPreview = document.getElementById('avatar-preview');
+            const loadUsernameBtn = document.getElementById('load-username-btn');
+            const loadSkinBtn = document.getElementById('load-skin-btn');
+            const updatePreviewBtn = document.getElementById('update-preview-btn');
+            const openSelectorBtn = document.getElementById('open-selector-btn');
+            const copyUrlBtn = document.getElementById('copy-url-btn');
+            const galleryToggle = document.getElementById('gallery-toggle');
+            const gallerySection = document.getElementById('gallery-section');
+            const exampleGallery = document.getElementById('example-gallery');
+            
+            // Infoelemente
+            const currentUsername = document.getElementById('current-username');
+            const currentSkinType = document.getElementById('current-skin-type');
+            const currentView = document.getElementById('current-view');
+            const currentBackground = document.getElementById('current-background');
+            const currentSize = document.getElementById('current-size');
+            
+            // Aktuelle Avatar-Optionen
+            let currentOptions = {
+                skinType: 'steve',
+                view: 'head',
+                background: '',
+                size: 150
+            };
+            
+            // Funktion zum Aktualisieren der Vorschau
+            function updatePreview() {
+                // Klonen der aktuellen Optionen
+                const options = {...currentOptions};
+                
+                // Optionen aus den Eingabeelementen aktualisieren
+                options.view = viewTypeSelect.value;
+                options.background = backgroundSelect.value;
+                options.size = parseInt(sizeInput.value) || 150;
+                
+                // Info-Anzeige aktualisieren
+                currentUsername.textContent = options.username || '-';
+                currentSkinType.textContent = options.skinType.charAt(0).toUpperCase() + options.skinType.slice(1);
+                
+                const viewMapping = {
+                    'face': 'Gesicht',
+                    'head': 'Kopf',
+                    'bust': 'Oberkörper',
+                    'full': 'Ganzer Körper',
+                    'skin': 'Skin (flach)'
+                };
+                currentView.textContent = viewMapping[options.view] || options.view;
+                
+                const bgMapping = {
+                    '': 'Transparent',
+                    'grass': 'Gras',
+                    'stone': 'Stein',
+                    'dirt': 'Erde',
+                    'wood': 'Holz',
+                    'netherrack': 'Netherrack',
+                    'wool': 'Wolle'
+                };
+                currentBackground.textContent = bgMapping[options.background] || options.background;
+                
+                currentSize.textContent = options.size + 'px';
+                
+                // Avatar generieren und in der Vorschau anzeigen
+                MinecraftAvatar.createAvatarElement(avatarPreview, options);
+                
+                // Aktuelle Optionen aktualisieren
+                currentOptions = options;
+            }
+            
+            // Event-Listener für Schaltflächen
+            loadUsernameBtn.addEventListener('click', function() {
+                const username = usernameInput.value.trim();
+                if (username) {
+                    delete currentOptions.skinType;
+                    currentOptions.username = username;
+                    updatePreview();
+                }
+            });
+            
+            loadSkinBtn.addEventListener('click', function() {
+                delete currentOptions.username;
+                currentOptions.skinType = skinTypeSelect.value;
+                updatePreview();
+            });
+            
+            updatePreviewBtn.addEventListener('click', updatePreview);
+            
+            viewTypeSelect.addEventListener('change', updatePreview);
+            backgroundSelect.addEventListener('change', updatePreview);
+            
+            sizeInput.addEventListener('change', function() {
+                // Begrenzen der Größe
+                let size = parseInt(sizeInput.value) || 150;
+                if (size < 16) size = 16;
+                if (size > 512) size = 512;
+                sizeInput.value = size;
+                updatePreview();
+            });
+            
+            // Avatar-Auswahldialog öffnen
+            openSelectorBtn.addEventListener('click', function() {
+                const dialog = MinecraftAvatar.createAvatarSelector(function(selectedOptions) {
+                    // Avatar-Optionen aus dem Dialog übernehmen
+                    currentOptions = selectedOptions;
+                    
+                    // UI-Elemente aktualisieren
+                    if (selectedOptions.username) {
+                        usernameInput.value = selectedOptions.username;
+                    } else {
+                        skinTypeSelect.value = selectedOptions.skinType;
+                    }
+                    
+                    viewTypeSelect.value = selectedOptions.view;
+                    backgroundSelect.value = selectedOptions.background;
+                    sizeInput.value = selectedOptions.size;
+                    
+                    // Vorschau aktualisieren
+                    updatePreview();
+                });
+                
+                // Dialog anzeigen
+                document.body.appendChild(dialog);
+            });
+            
+            // URL kopieren
+            copyUrlBtn.addEventListener('click', function() {
+                const url = MinecraftAvatar.generateAvatarUrl(currentOptions);
+                
+                // In die Zwischenablage kopieren
+                navigator.clipboard.writeText(url)
+                    .then(() => {
+                        // Erfolgstext anzeigen
+                        const originalText = copyUrlBtn.textContent;
+                        copyUrlBtn.textContent = 'URL kopiert!';
+                        setTimeout(() => {
+                            copyUrlBtn.textContent = originalText;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Fehler beim Kopieren der URL: ', err);
+                        alert('URL konnte nicht kopiert werden: ' + url);
+                    });
+            });
+            
+            // Galerie-Toggle
+            galleryToggle.addEventListener('click', function() {
+                gallerySection.classList.toggle('expanded');
+                galleryToggle.textContent = gallerySection.classList.contains('expanded') 
+                    ? '▲ Beispiel-Galerie ausblenden ▲' 
+                    : '▼ Beispiel-Galerie anzeigen ▼';
+            });
+            
+            // Beispiel-Galerie füllen
+            function populateExampleGallery() {
+                // Beispiel-Benutzernamen
+                const examples = [
+                    { name: 'Notch', username: 'Notch' },
+                    { name: 'Jeb', username: 'jeb_' },
+                    { name: 'Dinnerbone', username: 'Dinnerbone' },
+                    { name: 'Steve', skinType: 'steve' },
+                    { name: 'Alex', skinType: 'alex' },
+                    { name: 'Zombie', skinType: 'zombie' },
+                    { name: 'Villager', skinType: 'villager' },
+                    { name: 'Skeleton', skinType: 'skeleton' },
+                    { name: 'Creeper', skinType: 'creeper' },
+                    { name: 'Enderman', skinType: 'enderman' }
+                ];
+                
+                // Gallery leeren
+                exampleGallery.innerHTML = '';
+                
+                // Beispiele hinzufügen
+                examples.forEach(example => {
+                    const item = document.createElement('div');
+                    item.className = 'gallery-item';
+                    
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'gallery-img';
+                    
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'gallery-name';
+                    nameDiv.textContent = example.name;
+                    
+                    // Avatar-Optionen
+                    const options = {
+                        view: 'head',
+                        size: 80,
+                        background: ''
+                    };
+                    
+                    if (example.username) {
+                        options.username = example.username;
+                    } else {
+                        options.skinType = example.skinType;
+                    }
+                    
+                    // Avatar erstellen
+                    MinecraftAvatar.createAvatarElement(imgContainer, options);
+                    
+                    // Zum Klicken auf ein Beispiel
+                    item.addEventListener('click', function() {
+                        if (example.username) {
+                            delete currentOptions.skinType;
+                            currentOptions.username = example.username;
+                            usernameInput.value = example.username;
+                        } else {
+                            delete currentOptions.username;
+                            currentOptions.skinType = example.skinType;
+                            skinTypeSelect.value = example.skinType;
+                        }
+                        
+                        updatePreview();
+                    });
+                    
+                    item.appendChild(imgContainer);
+                    item.appendChild(nameDiv);
+                    exampleGallery.appendChild(item);
+                });
+            }
+            
+            // Initialisieren
+            updatePreview();
+            populateExampleGallery();
+        });
+    </script>
+</body>
+</html>
