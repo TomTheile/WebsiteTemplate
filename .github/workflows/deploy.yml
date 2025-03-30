@@ -34,16 +34,14 @@ jobs:
       - name: Install Dependencies
         run: npm install  # Falls du Yarn oder PNPM nutzt, ersetze diesen Befehl
 
-      - name: Build Project
-        run: npm run build  # Falls dein Build-Ordner anders heißt, passe es an
-
+      # Die Anwendung besteht aus statischen Dateien, kein Build-Prozess nötig
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './build'  # Falls der Output-Ordner anders ist, passe dies an
+          path: './'  # Direkt aus dem Wurzelverzeichnis deployen
 
       - name: Deploy to GitHub Pages
         id: deployment
