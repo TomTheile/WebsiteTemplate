@@ -426,8 +426,26 @@ async function sendVerificationEmail(userId, email, username) {
     console.log(`Generiere Verifizierungslink für ${email} (${username})...`);
     
     try {
-        // Den Email-Service importieren
-        const emailService = require('./email-service');
+        // Den Email-Service laden - für Browser- und Node.js-Umgebung
+        let emailService;
+        
+        // Je nach Umgebung den E-Mail-Service laden
+        if (typeof window !== 'undefined' && window.emailService) {
+            // Browser-Umgebung mit globalem Objekt
+            emailService = window.emailService;
+            console.log('E-Mail-Service aus Browser-Umgebung geladen');
+        } else if (typeof require !== 'undefined') {
+            // Node.js-Umgebung
+            try {
+                emailService = require('./email-service');
+                console.log('E-Mail-Service aus Node.js-Umgebung geladen');
+            } catch (moduleError) {
+                console.error('Fehler beim Laden des E-Mail-Service-Moduls:', moduleError);
+                throw new Error('E-Mail-Service konnte nicht geladen werden');
+            }
+        } else {
+            throw new Error('Keine unterstützte Umgebung für E-Mail-Service gefunden');
+        }
         
         // Einen sicheren Verifikationstoken erstellen
         const token = 'verify_' + Math.random().toString(36).substr(2, 10) + Math.random().toString(36).substr(2, 10);
@@ -451,7 +469,7 @@ async function sendVerificationEmail(userId, email, username) {
         const baseUrl = window.location.origin || 'https://herobrine-bot.de';
         const verifyUrl = `${baseUrl}/verify.html?token=${token}&user=${userId}&email=${encodeURIComponent(email)}`;
         
-        // Die echte E-Mail über den E-Mail-Service senden
+        // Die E-Mail über den E-Mail-Service senden
         const sendResult = await emailService.sendVerificationEmail(email, username, verifyUrl);
         
         if (sendResult) {
@@ -534,8 +552,26 @@ async function sendPasswordResetEmail(email) {
     }
     
     try {
-        // Den Email-Service importieren
-        const emailService = require('./email-service');
+        // Den Email-Service laden - für Browser- und Node.js-Umgebung
+        let emailService;
+        
+        // Je nach Umgebung den E-Mail-Service laden
+        if (typeof window !== 'undefined' && window.emailService) {
+            // Browser-Umgebung mit globalem Objekt
+            emailService = window.emailService;
+            console.log('E-Mail-Service aus Browser-Umgebung geladen');
+        } else if (typeof require !== 'undefined') {
+            // Node.js-Umgebung
+            try {
+                emailService = require('./email-service');
+                console.log('E-Mail-Service aus Node.js-Umgebung geladen');
+            } catch (moduleError) {
+                console.error('Fehler beim Laden des E-Mail-Service-Moduls:', moduleError);
+                throw new Error('E-Mail-Service konnte nicht geladen werden');
+            }
+        } else {
+            throw new Error('Keine unterstützte Umgebung für E-Mail-Service gefunden');
+        }
         
         console.log(`Sende Passwort-Reset-E-Mail an ${email} (${user.username})...`);
         
@@ -565,7 +601,7 @@ async function sendPasswordResetEmail(email) {
         const baseUrl = window.location.origin || 'https://herobrine-bot.de';
         const resetUrl = `${baseUrl}/reset-password.html?token=${token}&email=${encodeURIComponent(email)}`;
         
-        // Die echte E-Mail senden
+        // Die E-Mail über den E-Mail-Service senden
         const sendResult = await emailService.sendPasswordResetEmail(email, user.username, resetUrl);
         
         if (sendResult) {
