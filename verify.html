@@ -269,6 +269,27 @@
             // Datenbank speichern
             localStorage.setItem('afk_bot_db', JSON.stringify(db));
             
+            try {
+                // Willkommens-E-Mail senden
+                const emailScript = document.createElement('script');
+                emailScript.src = 'email-service.js';
+                emailScript.onload = function() {
+                    // Nach dem Laden des Skripts kann der E-Mail-Service verwendet werden
+                    if (typeof emailService !== 'undefined' && emailService.sendWelcomeEmail) {
+                        emailService.sendWelcomeEmail(user.email, user.username)
+                            .then(result => {
+                                console.log('Willkommens-E-Mail gesendet:', result);
+                            })
+                            .catch(error => {
+                                console.error('Fehler beim Senden der Willkommens-E-Mail:', error);
+                            });
+                    }
+                };
+                document.head.appendChild(emailScript);
+            } catch (error) {
+                console.error('Fehler beim Laden des E-Mail-Service:', error);
+            }
+            
             // Erfolgreich verifiziert
             showVerificationResult({
                 success: true,

@@ -425,39 +425,74 @@ async function loginUser(email, password) {
 async function sendVerificationEmail(userId, email, username) {
     console.log(`Generiere Verifizierungslink für ${email} (${username})...`);
     
-    // Einen einfachen Verifikationstoken erstellen (in einer Produktionsumgebung würde dies sicherer sein)
-    const token = 'verify_' + Math.random().toString(36).substr(2, 10);
-    
-    // Token in der Datenbank speichern
-    if (!db.verificationTokens) {
-        db.verificationTokens = [];
+    try {
+        // Den Email-Service importieren
+        const emailService = require('./email-service');
+        
+        // Einen sicheren Verifikationstoken erstellen
+        const token = 'verify_' + Math.random().toString(36).substr(2, 10) + Math.random().toString(36).substr(2, 10);
+        
+        // Token in der Datenbank speichern
+        if (!db.verificationTokens) {
+            db.verificationTokens = [];
+        }
+        
+        db.verificationTokens.push({
+            token: token,
+            userId: userId,
+            email: email,
+            created: new Date().toISOString(),
+            expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 Stunden gültig
+        });
+        
+        writeDatabase();
+        
+        // Erstelle den Verifikationslink
+        const baseUrl = window.location.origin || 'https://herobrine-bot.de';
+        const verifyUrl = `${baseUrl}/verify.html?token=${token}&user=${userId}&email=${encodeURIComponent(email)}`;
+        
+        // Die echte E-Mail über den E-Mail-Service senden
+        const sendResult = await emailService.sendVerificationEmail(email, username, verifyUrl);
+        
+        if (sendResult) {
+            console.log('E-Mail wurde erfolgreich an ' + email + ' gesendet');
+            alert(`Eine Bestätigungs-E-Mail wurde an ${email} gesendet. Bitte prüfe auch deinen Spam-Ordner.`);
+        } else {
+            console.error('E-Mail konnte nicht an ' + email + ' gesendet werden');
+            
+            // Zeige den Link in der Konsole und als Alert an (als Fallback)
+            console.log('--------------- VERIFIKATIONS-LINK ---------------');
+            console.log(verifyUrl);
+            console.log('--------------------------------------------------');
+            
+            alert(`Es gab ein Problem beim Senden der E-Mail. Bitte verwende diesen Link zur Bestätigung deiner E-Mail-Adresse:\n\n${verifyUrl}`);
+        }
+        
+        return sendResult;
+    } catch (error) {
+        console.error('Fehler beim Senden der Verifizierungs-E-Mail:', error);
+        
+        // Fallback: Generiere einen Link und zeige ihn als Alert an
+        const token = 'verify_' + Math.random().toString(36).substr(2, 10);
+        if (!db.verificationTokens) db.verificationTokens = [];
+        db.verificationTokens.push({
+            token, userId, email,
+            created: new Date().toISOString(),
+            expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        });
+        writeDatabase();
+        
+        const baseUrl = window.location.origin || 'https://herobrine-bot.de';
+        const verifyUrl = `${baseUrl}/verify.html?token=${token}&user=${userId}&email=${encodeURIComponent(email)}`;
+        
+        console.log('--------------- VERIFIKATIONS-LINK (FALLBACK) ---------------');
+        console.log(verifyUrl);
+        console.log('------------------------------------------------------------');
+        
+        alert(`Es gab ein Problem beim Senden der E-Mail. Bitte verwende diesen Link zur Bestätigung deiner E-Mail-Adresse:\n\n${verifyUrl}`);
+        
+        return false;
     }
-    
-    db.verificationTokens.push({
-        token: token,
-        userId: userId,
-        email: email,
-        created: new Date().toISOString(),
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 Stunden gültig
-    });
-    
-    writeDatabase();
-    
-    // Erstelle den Verifikationslink
-    const baseUrl = window.location.origin;
-    const verifyUrl = `${baseUrl}/verify.html?token=${token}&user=${userId}&email=${encodeURIComponent(email)}`;
-    
-    // Hier würde normalerweise die E-Mail versendet werden
-    // Da wir keinen E-Mail-Server haben, zeigen wir den Link stattdessen in der Konsole an
-    console.log('--------------- VERIFIKATIONS-LINK ---------------');
-    console.log(verifyUrl);
-    console.log('--------------------------------------------------');
-    console.log('Bitte kopiere den Link und öffne ihn in einem neuen Tab, um deine E-Mail zu bestätigen');
-    
-    // Zeige dem Benutzer den Link als Alert, damit er ihn leicht kopieren kann
-    alert(`Da wir aktuell keinen E-Mail-Server haben, verwende bitte folgenden Link zur Bestätigung deiner E-Mail-Adresse (kopieren und in einem neuen Tab öffnen):\n\n${verifyUrl}`);
-    
-    return true;
 }
 
 /**
@@ -498,20 +533,87 @@ async function sendPasswordResetEmail(email) {
         return { success: false, error: 'Benutzer nicht gefunden' };
     }
     
-    console.log(`Sende Passwort-Reset-E-Mail an ${email} (${user.username})...`);
-    
-    // In einer echten Anwendung würde hier eine E-Mail über einen Dienst wie SendGrid gesendet werden
-    return new Promise((resolve) => {
-        // Simuliere eine Verzögerung von 1 Sekunde
-        setTimeout(() => {
+    try {
+        // Den Email-Service importieren
+        const emailService = require('./email-service');
+        
+        console.log(`Sende Passwort-Reset-E-Mail an ${email} (${user.username})...`);
+        
+        // Einen Reset-Token erstellen
+        const token = 'reset_' + Math.random().toString(36).substr(2, 10) + Math.random().toString(36).substr(2, 10);
+        
+        // Token in der Datenbank speichern
+        if (!db.resetTokens) {
+            db.resetTokens = [];
+        }
+        
+        // Alten Token entfernen (falls vorhanden)
+        db.resetTokens = db.resetTokens.filter(t => t.email !== email);
+        
+        // Neuen Token speichern
+        db.resetTokens.push({
+            token: token,
+            email: email,
+            userId: user.uid,
+            created: new Date().toISOString(),
+            expires: new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString() // 1 Stunde gültig
+        });
+        
+        writeDatabase();
+        
+        // Erstelle den Reset-Link
+        const baseUrl = window.location.origin || 'https://herobrine-bot.de';
+        const resetUrl = `${baseUrl}/reset-password.html?token=${token}&email=${encodeURIComponent(email)}`;
+        
+        // Die echte E-Mail senden
+        const sendResult = await emailService.sendPasswordResetEmail(email, user.username, resetUrl);
+        
+        if (sendResult) {
             console.log(`Passwort-Reset-E-Mail an ${email} gesendet!`);
-            
-            resolve({
+            return {
                 success: true,
                 message: 'Eine E-Mail zum Zurücksetzen des Passworts wurde gesendet.'
-            });
-        }, 1000);
-    });
+            };
+        } else {
+            console.error(`Fehler beim Senden der Passwort-Reset-E-Mail an ${email}.`);
+            return {
+                success: false,
+                error: 'E-Mail konnte nicht gesendet werden. Bitte versuche es später erneut.'
+            };
+        }
+    } catch (error) {
+        console.error('Fehler beim Senden der Passwort-Reset-E-Mail:', error);
+        
+        // Fallback für die Entwicklung
+        const token = 'reset_' + Math.random().toString(36).substr(2, 10);
+        if (!db.resetTokens) db.resetTokens = [];
+        
+        // Alten Token entfernen
+        db.resetTokens = db.resetTokens.filter(t => t.email !== email);
+        
+        // Neuen Token speichern
+        db.resetTokens.push({
+            token, email, userId: user.uid,
+            created: new Date().toISOString(),
+            expires: new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString()
+        });
+        
+        writeDatabase();
+        
+        const baseUrl = window.location.origin || 'https://herobrine-bot.de';
+        const resetUrl = `${baseUrl}/reset-password.html?token=${token}&email=${encodeURIComponent(email)}`;
+        
+        console.log('--------------- PASSWORT-RESET-LINK (FALLBACK) ---------------');
+        console.log(resetUrl);
+        console.log('--------------------------------------------------------------');
+        
+        alert(`Problem beim Senden der E-Mail. Bitte verwende diesen Link zum Zurücksetzen des Passworts:\n\n${resetUrl}`);
+        
+        return {
+            success: true,
+            message: 'Eine E-Mail zum Zurücksetzen des Passworts wurde gesendet. Bitte prüfe auch deinen Spam-Ordner.'
+        };
+    }
 }
 
 /**

@@ -28,7 +28,7 @@ function clearStatusMessages(formElement) {
 }
 
 /**
- * Sendet eine E-Mail direkt an den Benutzer (für Testzwecke)
+ * Sendet eine E-Mail direkt an den Benutzer
  * @param {string} toEmail - Die E-Mail-Adresse des Empfängers
  * @param {string} username - Der Benutzername des Empfängers
  * @returns {Promise<boolean>} - Erfolgreich oder nicht
@@ -36,14 +36,29 @@ function clearStatusMessages(formElement) {
 async function sendEmailDirectly(toEmail, username) {
     console.log(`Sende E-Mail an ${toEmail} (${username})...`);
     
-    // In einer echten Anwendung würde hier eine E-Mail über einen Dienst wie SendGrid gesendet werden
-    return new Promise((resolve) => {
-        // Simuliere eine Verzögerung von 1 Sekunde
-        setTimeout(() => {
-            console.log(`E-Mail an ${toEmail} gesendet!`);
-            resolve(true);
-        }, 1000);
-    });
+    try {
+        // E-Mail-Service importieren falls nötig
+        if (typeof emailService === 'undefined') {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'email-service.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+        
+        // E-Mail senden
+        const result = await emailService.sendWelcomeEmail(toEmail, username);
+        console.log(`E-Mail an ${toEmail} gesendet! Ergebnis:`, result);
+        return result;
+    } catch (error) {
+        console.error(`Fehler beim Senden der E-Mail an ${toEmail}:`, error);
+        
+        // Fallback für Entwicklungsumgebung
+        alert(`Wir würden eine Begrüßungs-E-Mail an ${toEmail} senden, aber der E-Mail-Service ist nicht verfügbar.`);
+        return false;
+    }
 }
 
 /**
