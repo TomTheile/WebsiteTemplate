@@ -148,6 +148,18 @@ function setupBotSafety(bot) {
     addBotLog(bot.id, 'Sicherheitseinstellungen aktiviert', 'success');
 }
 
+// Exportiere die Funktionen für das Admin-Dashboard
+if (typeof window !== 'undefined') {
+    window.minecraftBot = {
+        startBot,
+        stopBot,
+        sendCommand,
+        getBotStatus,
+        addBotLog,
+        getBotLogs
+    };
+}
+
 /**
  * Stoppt einen laufenden Bot
  * 

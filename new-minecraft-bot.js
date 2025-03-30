@@ -1,3 +1,9 @@
+// Exportiere Funktionen für das Admin-Dashboard
+if (typeof window !== 'undefined') {
+    window.startMinecraftBot = startBot;
+    window.stopMinecraftBot = stopBot;
+}
+
 const mineflayer = require('mineflayer');
 
 // Aktive Bots speichern
@@ -107,6 +113,12 @@ function startBot(config) {
                 
                 // Bot im aktiven Bot-Pool speichern
                 activeBots[username] = bot;
+                
+                // Exportiere die Funktionen für das Admin-Dashboard
+                if (typeof window !== 'undefined') {
+                    window.startMinecraftBot = startBot;
+                    window.stopMinecraftBot = stopBot;
+                }
                 
                 // Erfolg melden
                 resolve({
@@ -709,6 +721,12 @@ function setupBotEventLogging(bot, username) {
             }
         }
     });
+}
+
+// Exportiere die Funktionen für das Admin-Dashboard (zusätzlich zu oben, hier erneut für den Fall, dass der Aufruf verschoben wird)
+if (typeof window !== 'undefined') {
+    window.startMinecraftBot = startBot;
+    window.stopMinecraftBot = stopBot;
 }
 
 module.exports = {

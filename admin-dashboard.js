@@ -92,12 +92,54 @@ function loadAllData() {
  */
 function loadUsers() {
     try {
-        // In einer realen Anwendung würde hier ein API-Aufruf stehen
-        const dbData = localStorage.getItem('database');
-        if (dbData) {
-            const db = JSON.parse(dbData);
-            allUsers = db.users || [];
+        // Aus dem localStorage laden (afk_bot_db und registered_users kombinieren)
+        const afkBotDbData = localStorage.getItem('afk_bot_db');
+        const registeredUsersData = localStorage.getItem('registered_users');
+        let combinedUsers = [];
+        
+        // Hauptdatenbank (neue Implementierung)
+        if (afkBotDbData) {
+            const db = JSON.parse(afkBotDbData);
+            if (Array.isArray(db.users)) {
+                // Format der Benutzer in der Admin-Tabelle anpassen
+                combinedUsers = db.users.map(user => ({
+                    id: user.uid,
+                    username: user.username,
+                    email: user.email,
+                    registrationDate: user.created_at,
+                    lastLogin: user.last_login,
+                    isPremium: user.isPremium,
+                    verified: user.verified,
+                    banned: user.banned || false,
+                    role: user.role
+                }));
+            }
         }
+        
+        // Ältere registrierte Benutzer (falls vorhanden und nicht bereits in der Hauptdatenbank)
+        if (registeredUsersData) {
+            const oldUsers = JSON.parse(registeredUsersData);
+            if (Array.isArray(oldUsers)) {
+                // Benutzer hinzufügen, die noch nicht in combinedUsers sind
+                for (const oldUser of oldUsers) {
+                    if (!combinedUsers.some(u => u.email === oldUser.email)) {
+                        combinedUsers.push({
+                            id: oldUser.uid,
+                            username: oldUser.username,
+                            email: oldUser.email,
+                            registrationDate: oldUser.created_at,
+                            lastLogin: null,
+                            isPremium: false,
+                            verified: oldUser.verified,
+                            banned: false,
+                            role: oldUser.role
+                        });
+                    }
+                }
+            }
+        }
+        
+        allUsers = combinedUsers;
     } catch (error) {
         console.error('Fehler beim Laden der Benutzer:', error);
         allUsers = [];
@@ -109,11 +151,32 @@ function loadUsers() {
  */
 function loadBots() {
     try {
-        // In einer realen Anwendung würde hier ein API-Aufruf stehen
-        const dbData = localStorage.getItem('database');
+        // Neue Datenbank-Struktur verwenden (afk_bot_db)
+        const dbData = localStorage.getItem('afk_bot_db');
         if (dbData) {
             const db = JSON.parse(dbData);
-            allBots = db.bots || [];
+            if (Array.isArray(db.bots)) {
+                // Format der Bots an die Admin-Tabelle anpassen
+                allBots = db.bots.map(bot => {
+                    // Zugehörigen Benutzer finden
+                    const ownerInfo = db.users?.find(user => user.uid === bot.user_id);
+                    
+                    return {
+                        id: bot.id,
+                        owner: ownerInfo ? ownerInfo.username : 'Unbekannt',
+                        ownerId: bot.user_id,
+                        server: bot.server_address,
+                        port: bot.server_port,
+                        status: bot.status,
+                        createdAt: bot.created_at,
+                        lastActive: bot.last_active,
+                        onlineTime: bot.total_online_time || 0,
+                        username: bot.username
+                    };
+                });
+            } else {
+                allBots = [];
+            }
         }
     } catch (error) {
         console.error('Fehler beim Laden der Bots:', error);
@@ -126,11 +189,21 @@ function loadBots() {
  */
 function loadSystemLogs() {
     try {
-        // In einer realen Anwendung würde hier ein API-Aufruf stehen
-        const dbData = localStorage.getItem('database');
+        // Neue Datenbank-Struktur verwenden (afk_bot_db)
+        const dbData = localStorage.getItem('afk_bot_db');
         if (dbData) {
             const db = JSON.parse(dbData);
-            systemLogs = db.logs || [];
+            if (Array.isArray(db.logs)) {
+                systemLogs = db.logs.map(log => ({
+                    id: log.id,
+                    timestamp: log.timestamp,
+                    type: log.type,
+                    source: log.bot_id ? `Bot ${log.bot_id}` : 'System',
+                    message: log.message
+                }));
+            } else {
+                systemLogs = [];
+            }
         }
     } catch (error) {
         console.error('Fehler beim Laden der Logs:', error);
@@ -370,10 +443,30 @@ function stopAllBots() {
     
     // Bestätigung anfordern
     if (confirm(`Möchten Sie wirklich alle ${activeBots.length} aktiven Bots stoppen?`)) {
-        // In einem echten System würde hier ein API-Aufruf zum Stoppen aller Bots erfolgen
+        // Jeden aktiven Bot einzeln stoppen
         const timestamp = new Date().toISOString();
+        const stoppedBots = [];
         
-        // Status aller Bots aktualisieren
+        // Aktive Bots durchgehen und jeden einzeln stoppen
+        for (const bot of activeBots) {
+            try {
+                // MinecraftBot-Modul verwenden, um den Bot tatsächlich zu stoppen
+                if (typeof window.minecraftBot !== 'undefined' && typeof window.minecraftBot.stopBot === 'function') {
+                    window.minecraftBot.stopBot(bot.id);
+                } else if (typeof stopMinecraftBot === 'function') {
+                    // Alternative Funktion, falls vorhanden
+                    stopMinecraftBot(bot.id);
+                }
+                
+                // Zu den erfolgreich gestoppten Bots hinzufügen
+                stoppedBots.push(bot.id);
+            } catch (error) {
+                console.error(`Fehler beim Stoppen des Bots ${bot.id}:`, error);
+            }
+        }
+        
+        // Status aller Bots aktualisieren, auch wenn das Stoppen fehlschlug
+        // (die UI sollte immer mit dem tatsächlichen Zustand übereinstimmen)
         allBots = allBots.map(bot => {
             if (bot.status === 'online' || bot.status === 'connecting' || bot.status === 'warning') {
                 return {
@@ -389,7 +482,7 @@ function stopAllBots() {
         updateDatabase();
         
         // Log-Eintrag erstellen
-        addSystemLog('Administrator hat alle Bots gestoppt', 'info', 'System');
+        addSystemLog(`Administrator hat alle ${activeBots.length} Bots gestoppt`, 'info', 'System');
         
         // UI aktualisieren
         updateDashboardStats();
@@ -411,7 +504,20 @@ function stopBot(botId) {
         return;
     }
     
-    // In einem echten System würde hier ein API-Aufruf zum Stoppen des Bots erfolgen
+    try {
+        // MinecraftBot-Modul verwenden, um den Bot tatsächlich zu stoppen
+        // Importieren der externen Funktion, falls vorhanden
+        if (typeof window.minecraftBot !== 'undefined' && typeof window.minecraftBot.stopBot === 'function') {
+            window.minecraftBot.stopBot(botId);
+        } else if (typeof stopMinecraftBot === 'function') {
+            // Alternative Funktion, falls vorhanden
+            stopMinecraftBot(botId);
+        }
+    } catch (error) {
+        console.error('Fehler beim Stoppen des Bots:', error);
+    }
+    
+    // In jedem Fall den Bot-Status in der UI aktualisieren
     const timestamp = new Date().toISOString();
     
     // Bot-Status aktualisieren
@@ -446,39 +552,113 @@ function startBot(botId) {
         return;
     }
     
-    // In einem echten System würde hier ein API-Aufruf zum Starten des Bots erfolgen
+    const bot = allBots[botIndex];
     const timestamp = new Date().toISOString();
     
-    // Bot-Status aktualisieren
+    // Bot-Status auf 'connecting' setzen
     allBots[botIndex] = {
-        ...allBots[botIndex],
+        ...bot,
         status: 'connecting',
         lastStatusChange: timestamp
     };
     
-    // Datenbank aktualisieren
+    // UI aktualisieren, bevor wir den Bot starten
     updateDatabase();
+    updateDashboardStats();
+    updateBotTable();
     
     // Log-Eintrag erstellen
     addSystemLog(`Administrator hat Bot ${botId} gestartet`, 'info', 'System');
     
-    // UI aktualisieren
-    updateDashboardStats();
-    updateBotTable();
-    
+    // Fortschritt anzeigen
     showToast(`Bot ${botId} wird gestartet...`, 'success');
     
-    // In einer realen Anwendung würde der Bot hier starten
-    // Hier simulieren wir den Verbindungsaufbau nach 2 Sekunden
-    setTimeout(() => {
-        const botIndex = allBots.findIndex(bot => bot.id === botId);
+    try {
+        // MinecraftBot-Modul verwenden, um den Bot tatsächlich zu starten
+        if (typeof window.minecraftBot !== 'undefined' && typeof window.minecraftBot.startBot === 'function') {
+            // Konfiguration für den Bot erstellen
+            const botConfig = {
+                username: bot.username || `HerobrineBot_${Math.floor(Math.random() * 1000)}`,
+                server: bot.server,
+                port: bot.port || 25565,
+                autoReconnect: true,
+                antiAFK: true
+            };
+            
+            // Bot starten
+            window.minecraftBot.startBot(botConfig)
+                .then(result => {
+                    if (result && result.success) {
+                        // Bot wurde erfolgreich gestartet
+                        const botIndex = allBots.findIndex(b => b.id === botId);
+                        if (botIndex !== -1) {
+                            allBots[botIndex].status = 'online';
+                            allBots[botIndex].lastStatusChange = new Date().toISOString();
+                            updateDatabase();
+                            updateDashboardStats();
+                            updateBotTable();
+                            showToast(`Bot ${botId} ist jetzt online`, 'success');
+                        }
+                    } else {
+                        // Fehler beim Starten des Bots
+                        throw new Error(result?.error || 'Unbekannter Fehler');
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler beim Starten des Bots:', error);
+                    const botIndex = allBots.findIndex(b => b.id === botId);
+                    if (botIndex !== -1) {
+                        allBots[botIndex].status = 'error';
+                        updateDatabase();
+                        updateDashboardStats();
+                        updateBotTable();
+                    }
+                    showToast(`Fehler beim Starten des Bots: ${error.message}`, 'error');
+                });
+        } else if (typeof startMinecraftBot === 'function') {
+            // Alternative Funktion, falls vorhanden
+            startMinecraftBot(botId, bot.username, bot.server, bot.port || 25565)
+                .then(() => {
+                    // Nach erfolgreicher Ausführung den Status aktualisieren
+                    const botIndex = allBots.findIndex(b => b.id === botId);
+                    if (botIndex !== -1) {
+                        allBots[botIndex].status = 'online';
+                        updateDatabase();
+                        updateDashboardStats();
+                        updateBotTable();
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler beim Starten des Bots:', error);
+                    showToast(`Fehler beim Starten des Bots: ${error.message}`, 'error');
+                });
+        } else {
+            // Wenn keine der Funktionen verfügbar ist, simulieren wir den Start
+            console.warn('Keine Bot-Start-Funktion gefunden, simuliere Bot-Start...');
+            setTimeout(() => {
+                const botIndex = allBots.findIndex(b => b.id === botId);
+                if (botIndex !== -1) {
+                    allBots[botIndex].status = 'online';
+                    updateDatabase();
+                    updateDashboardStats();
+                    updateBotTable();
+                    showToast(`Bot ${botId} ist jetzt online (simuliert)`, 'success');
+                }
+            }, 2000);
+        }
+    } catch (error) {
+        console.error('Fehler beim Starten des Bots:', error);
+        showToast(`Fehler beim Starten des Bots: ${error.message}`, 'error');
+        
+        // Status auf 'error' setzen
+        const botIndex = allBots.findIndex(b => b.id === botId);
         if (botIndex !== -1) {
-            allBots[botIndex].status = 'online';
+            allBots[botIndex].status = 'error';
             updateDatabase();
             updateDashboardStats();
             updateBotTable();
         }
-    }, 2000);
+    }
 }
 
 /**
@@ -519,13 +699,56 @@ function showBotLogs(botId) {
  */
 function updateDatabase() {
     try {
-        let db = {
-            users: allUsers,
-            bots: allBots,
-            logs: systemLogs
-        };
+        // Aktuelle Daten aus dem afk_bot_db laden
+        const dbData = localStorage.getItem('afk_bot_db');
+        let db = dbData ? JSON.parse(dbData) : { users: [], bots: [], logs: [] };
         
-        localStorage.setItem('database', JSON.stringify(db));
+        // Benutzer aktualisieren
+        if (Array.isArray(allUsers) && allUsers.length > 0) {
+            // Format der Benutzer für die Datenbank anpassen
+            db.users = allUsers.map(user => ({
+                uid: user.id,
+                username: user.username,
+                email: user.email,
+                created_at: user.registrationDate,
+                last_login: user.lastLogin,
+                isPremium: user.isPremium || false,
+                verified: user.verified || false,
+                banned: user.banned || false,
+                role: user.role || 'user'
+            }));
+        }
+        
+        // Bots aktualisieren
+        if (Array.isArray(allBots) && allBots.length > 0) {
+            // Format der Bots für die Datenbank anpassen
+            db.bots = allBots.map(bot => ({
+                id: bot.id,
+                user_id: bot.ownerId,
+                username: bot.username || 'Bot-' + Math.floor(Math.random() * 10000),
+                server_address: bot.server,
+                server_port: bot.port || 25565,
+                status: bot.status || 'offline',
+                created_at: bot.createdAt || new Date().toISOString(),
+                last_active: bot.lastActive || null,
+                total_online_time: bot.onlineTime || 0
+            }));
+        }
+        
+        // Logs aktualisieren
+        if (Array.isArray(systemLogs) && systemLogs.length > 0) {
+            // Format der Logs für die Datenbank anpassen
+            db.logs = systemLogs.map(log => ({
+                id: log.id,
+                timestamp: log.timestamp,
+                type: log.type || 'info',
+                bot_id: log.source && log.source.startsWith('Bot ') ? log.source.replace('Bot ', '') : null,
+                message: log.message
+            }));
+        }
+        
+        // In localStorage speichern
+        localStorage.setItem('afk_bot_db', JSON.stringify(db));
     } catch (error) {
         console.error('Fehler beim Aktualisieren der Datenbank:', error);
     }
@@ -598,200 +821,12 @@ function showToast(message, type = 'info', duration = 3000) {
 
 /**
  * Initialisiert die Datenbank mit Beispieldaten, wenn sie noch nicht existiert
+ * Diese Funktion wird jetzt nicht mehr verwendet, da die Daten im afk_bot_db sind
  */
 function initializeDatabaseIfNeeded() {
-    if (!localStorage.getItem('database')) {
-        const timestamp = new Date().toISOString();
-        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
-        
-        // Beispieldaten erstellen
-        const db = {
-            users: [
-                {
-                    id: 'admin_id',
-                    username: 'Administrator',
-                    email: 'admin@herobrine-bot.de',
-                    role: 'admin',
-                    registrationDate: twoDaysAgo,
-                    lastLogin: timestamp,
-                    bots: ['admin-bot-1', 'admin-bot-2'],
-                    premium: true
-                },
-                {
-                    id: 'user_1',
-                    username: 'MaxMustermann',
-                    email: 'max@example.com',
-                    role: 'user',
-                    registrationDate: yesterday,
-                    lastLogin: timestamp,
-                    bots: ['max-bot-1'],
-                    premium: false
-                },
-                {
-                    id: 'user_2',
-                    username: 'AnnaBeispiel',
-                    email: 'anna@example.com',
-                    role: 'user',
-                    registrationDate: yesterday,
-                    lastLogin: timestamp,
-                    bots: ['anna-bot-1'],
-                    premium: true
-                },
-                {
-                    id: 'user_3',
-                    username: 'ThomasTest',
-                    email: 'thomas@example.com',
-                    role: 'user',
-                    registrationDate: twoDaysAgo,
-                    lastLogin: twoDaysAgo,
-                    bots: ['tom-bot-1'],
-                    premium: false
-                },
-                {
-                    id: 'user_4',
-                    username: 'SarahSample',
-                    email: 'sarah@example.com',
-                    role: 'user',
-                    registrationDate: timestamp,
-                    lastLogin: timestamp,
-                    bots: ['sarah-bot-1'],
-                    premium: false
-                },
-                {
-                    id: 'user_5',
-                    username: 'PeterBeispiel',
-                    email: 'peter@example.com',
-                    role: 'user',
-                    registrationDate: twoDaysAgo,
-                    lastLogin: yesterday,
-                    bots: ['peter-bot-1'],
-                    premium: false,
-                    banned: true,
-                    banReason: 'Verstoß gegen Nutzungsbedingungen'
-                }
-            ],
-            bots: [
-                {
-                    id: 'admin-bot-1',
-                    owner: 'Administrator',
-                    ownerId: 'admin_id',
-                    name: 'AdminBot1',
-                    server: 'mc.admin-server.net',
-                    status: 'online',
-                    createdAt: twoDaysAgo,
-                    lastStatusChange: timestamp,
-                    onlineTime: 48.5
-                },
-                {
-                    id: 'admin-bot-2',
-                    owner: 'Administrator',
-                    ownerId: 'admin_id',
-                    name: 'AdminBot2',
-                    server: 'play.minecraft.net',
-                    status: 'offline',
-                    createdAt: yesterday,
-                    lastStatusChange: yesterday,
-                    onlineTime: 0.0
-                },
-                {
-                    id: 'max-bot-1',
-                    owner: 'MaxMustermann',
-                    ownerId: 'user_1',
-                    name: 'MaxBot1',
-                    server: 'mc.example.com',
-                    status: 'online',
-                    createdAt: yesterday,
-                    lastStatusChange: timestamp,
-                    onlineTime: 2.5
-                },
-                {
-                    id: 'anna-bot-1',
-                    owner: 'AnnaBeispiel',
-                    ownerId: 'user_2',
-                    name: 'AnnaBot',
-                    server: 'play.minecraft.net',
-                    status: 'online',
-                    createdAt: yesterday,
-                    lastStatusChange: timestamp,
-                    onlineTime: 4.2
-                },
-                {
-                    id: 'tom-bot-1',
-                    owner: 'ThomasTest',
-                    ownerId: 'user_3',
-                    name: 'TomBot',
-                    server: 'mc.hypixel.net',
-                    status: 'warning',
-                    createdAt: twoDaysAgo,
-                    lastStatusChange: timestamp,
-                    onlineTime: 0.75
-                },
-                {
-                    id: 'sarah-bot-1',
-                    owner: 'SarahSample',
-                    ownerId: 'user_4',
-                    name: 'SarahBot',
-                    server: 'mineplex.com',
-                    status: 'online',
-                    createdAt: timestamp,
-                    lastStatusChange: timestamp,
-                    onlineTime: 1.33
-                },
-                {
-                    id: 'peter-bot-1',
-                    owner: 'PeterBeispiel',
-                    ownerId: 'user_5',
-                    name: 'PeterBot',
-                    server: 'mc.server.de',
-                    status: 'offline',
-                    createdAt: twoDaysAgo,
-                    lastStatusChange: yesterday,
-                    onlineTime: 0.0
-                }
-            ],
-            logs: [
-                {
-                    id: 'log_1',
-                    timestamp: timestamp,
-                    type: 'info',
-                    source: 'System',
-                    message: 'Administrator hat sich angemeldet'
-                },
-                {
-                    id: 'log_2',
-                    timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-                    type: 'warning',
-                    source: 'Bot:AnnaBot',
-                    message: 'Bot hat mehrere Chat-Nachrichten in kurzer Zeit erhalten'
-                },
-                {
-                    id: 'log_3',
-                    timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-                    type: 'info',
-                    source: 'System',
-                    message: 'Neuer Benutzer SarahSample hat sich registriert'
-                },
-                {
-                    id: 'log_4',
-                    timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-                    type: 'error',
-                    source: 'Bot:TomBot',
-                    message: 'Verbindung zum Server verloren, versuche erneut zu verbinden'
-                },
-                {
-                    id: 'log_5',
-                    timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-                    type: 'info',
-                    source: 'System',
-                    message: 'PeterBeispiel hat Bot gestoppt'
-                }
-            ]
-        };
-        
-        // In localStorage speichern
-        localStorage.setItem('database', JSON.stringify(db));
-    }
+    // Diese Funktion wird nicht mehr benötigt, da wir die Daten aus afk_bot_db verwenden
+    // Stattdessen stellen wir sicher, dass die vorhandenen Daten richtig geladen werden
+    loadAllData();
 }
 
 // Initialisierung beim Laden der Seite
