@@ -3,68 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Mail-Verifizierung - Herobrine AFK Bot</title>
+    <title>E-Mail verifizieren - Herobrine AFK Bot</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        .verify-container {
+        .verification-container {
             max-width: 600px;
-            margin: 40px auto;
-            padding: 40px;
+            margin: 50px auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid #1eff00;
             border-radius: 10px;
+            padding: 30px;
             text-align: center;
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
+            box-shadow: 0 0 20px rgba(30, 255, 0, 0.2);
+            animation: fadeIn 0.5s ease-in-out;
         }
         
-        .verify-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .verify-title {
-            color: #1eff00;
-            margin-bottom: 20px;
-        }
-        
-        .verify-message {
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
-        
-        .verify-button {
-            display: inline-block;
-            background-color: #1eff00;
-            color: #000;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        
-        .verify-button:hover {
-            background-color: #15cc00;
-            box-shadow: 0 0 15px rgba(30, 255, 0, 0.5);
-        }
-        
-        .verify-loading {
-            display: none;
-            margin: 20px 0;
-        }
-        
-        .verify-spinner {
-            border: 4px solid rgba(30, 255, 0, 0.3);
-            border-radius: 50%;
-            border-top: 4px solid #1eff00;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
+        @keyframes verifying {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .verification-status {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .verification-success {
+            background-color: rgba(30, 255, 0, 0.1);
+            border: 1px solid #1eff00;
+            animation: pulse 2s infinite;
+        }
+        
+        .verification-error {
+            background-color: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff3333;
+        }
+        
+        .verification-pending {
+            background-color: rgba(255, 165, 0, 0.1);
+            border: 1px solid #ffa500;
+        }
+        
+        .verification-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .success-icon {
+            color: #1eff00;
+        }
+        
+        .error-icon {
+            color: #ff3333;
+        }
+        
+        .spinner-icon {
+            color: #ffa500;
+            animation: verifying 2s infinite linear;
+        }
+        
+        .verification-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        
+        .verification-message {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            color: #ccc;
+        }
+        
+        .verification-action {
+            margin-top: 30px;
+        }
+        
+        .btn-redirect {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #1eff00;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-redirect:hover {
+            background-color: #19cc00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 255, 0, 0.3);
+        }
+        
+        .verification-email {
+            font-style: italic;
+            font-weight: bold;
+            color: #1eff00;
+        }
+        
+        .demo-message {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(255, 255, 0, 0.1);
+            border: 1px solid #ffff00;
+            border-radius: 5px;
+            color: #ffff00;
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -74,31 +136,17 @@
         <div class="header">
             <h1>Herobrine AFK Bot</h1>
             <div class="quick-links">
-                <a href="index.html">Zurück zur Startseite</a>
+                <a href="index.html">Startseite</a>
+                <a href="#">Hilfe</a>
             </div>
         </div>
 
-        <div class="verify-container green-border">
-            <div class="verify-icon">✉️</div>
-            <h2 class="verify-title">E-Mail-Verifizierung</h2>
-            
-            <div id="verify-pending">
-                <p class="verify-message">Wir überprüfen deine E-Mail-Adresse. Bitte warte kurz...</p>
-                <div class="verify-loading" style="display: block;">
-                    <div class="verify-spinner"></div>
-                    <p>Verifiziere...</p>
-                </div>
-            </div>
-            
-            <div id="verify-success" style="display: none;">
-                <p class="verify-message">Deine E-Mail-Adresse wurde erfolgreich verifiziert! Du kannst jetzt den Herobrine AFK Bot nutzen.</p>
-                <a href="index.html" class="verify-button">Zum Login</a>
-            </div>
-            
-            <div id="verify-error" style="display: none;">
-                <p class="verify-message">Bei der Verifizierung ist ein Fehler aufgetreten. Möglicherweise ist der Verifizierungslink abgelaufen oder ungültig.</p>
-                <p id="error-details" class="verify-message" style="color: #ff5555;"></p>
-                <a href="index.html" class="verify-button">Zurück zur Startseite</a>
+        <div class="verification-container" id="verification-container">
+            <!-- Dieser Bereich wird dynamisch gefüllt -->
+            <span class="verification-icon spinner-icon material-icons">autorenew</span>
+            <h2 class="verification-title">E-Mail-Adresse wird überprüft...</h2>
+            <div class="verification-status verification-pending">
+                <p class="verification-message">Bitte warte, während deine E-Mail-Adresse überprüft wird.</p>
             </div>
         </div>
 
@@ -112,127 +160,175 @@
         </div>
     </div>
 
+    <!-- Scripts -->
+    <script src="script.js"></script>
     <script>
-        // Funktion zum Parsen der URL-Parameter
-        function getUrlParams() {
-            const params = {};
-            const queryString = window.location.search;
-            const urlParams = new URLSearchParams(queryString);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Token und Parameter aus der URL abrufen
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const userId = params.get('user');
+            const email = params.get('email');
+            const isDemo = params.get('demo') === 'true';
             
-            for (const [key, value] of urlParams.entries()) {
-                params[key] = value;
-            }
+            const verificationContainer = document.getElementById('verification-container');
             
-            return params;
-        }
-        
-        // Hilfsfunktion: Datenbank aus localStorage lesen
-        function getDatabaseData() {
-            try {
-                const storedData = localStorage.getItem('afk_bot_db');
-                if (storedData) {
-                    return JSON.parse(storedData);
-                }
-            } catch (error) {
-                console.error('Fehler beim Lesen der Datenbank:', error);
-            }
-            return { users: [], bots: [], logs: [], verificationTokens: [] };
-        }
-        
-        // Hilfsfunktion: Datenbank in localStorage speichern
-        function saveDatabaseData(db) {
-            try {
-                localStorage.setItem('afk_bot_db', JSON.stringify(db));
-                console.log('Datenbank erfolgreich in localStorage gespeichert');
-            } catch (error) {
-                console.error('Fehler beim Schreiben der Datenbank:', error);
-            }
-        }
-        
-        // Funktion zur Verifizierung der E-Mail
-        async function verifyEmail() {
-            const params = getUrlParams();
-            const verifyPending = document.getElementById('verify-pending');
-            const verifySuccess = document.getElementById('verify-success');
-            const verifyError = document.getElementById('verify-error');
-            const errorDetails = document.getElementById('error-details');
-            
-            // Überprüfen, ob die notwendigen Parameter vorhanden sind
-            if (!params.token || !params.user || !params.email) {
-                verifyPending.style.display = 'none';
-                verifyError.style.display = 'block';
-                errorDetails.textContent = 'Ungültiger Verifizierungslink. Fehlende Parameter.';
+            // Demo-Modus (für Entwicklung und Test)
+            if (isDemo) {
+                showVerificationResult({
+                    success: true,
+                    demoMode: true,
+                    message: "Dies ist eine Demo-Ansicht der E-Mail-Verifizierung.",
+                    email: email || "demo@example.com"
+                });
                 return;
             }
             
+            if (!token) {
+                showVerificationResult({
+                    success: false,
+                    message: "Kein Verifizierungstoken gefunden. Bitte überprüfe den Link aus deiner E-Mail."
+                });
+                return;
+            }
+            
+            // Verifizierungstoken überprüfen
+            verifyToken(token, userId, email);
+        });
+        
+        /**
+         * Überprüft ein Verifizierungstoken
+         */
+        function verifyToken(token, userId, email) {
+            // Datenbank aus dem localStorage laden
+            let db;
             try {
-                // Datenbank aus dem localStorage laden
-                const db = getDatabaseData();
-                
-                // Überprüfen, ob der Token vorhanden ist
-                const tokenData = db.verificationTokens?.find(t => 
-                    t.token === params.token && 
-                    t.userId === params.user && 
-                    t.email === params.email
-                );
-                
-                if (!tokenData) {
-                    throw new Error('Ungültiger Verifizierungstoken. Der Link ist möglicherweise abgelaufen oder wurde bereits verwendet.');
+                const storedData = localStorage.getItem('afk_bot_db');
+                if (storedData) {
+                    db = JSON.parse(storedData);
+                } else {
+                    showVerificationResult({
+                        success: false,
+                        message: "Keine Datenbank gefunden. Bitte registriere dich erneut."
+                    });
+                    return;
                 }
-                
-                // Überprüfen, ob der Token abgelaufen ist
-                const now = new Date();
-                const expires = new Date(tokenData.expires);
-                
-                if (now > expires) {
-                    throw new Error('Der Verifizierungslink ist abgelaufen. Bitte fordere einen neuen an.');
-                }
-                
-                // Benutzer finden und verifizieren
-                const user = db.users.find(u => u.uid === params.user);
-                
-                if (!user) {
-                    throw new Error('Benutzer nicht gefunden. Bitte registriere dich erneut.');
-                }
-                
-                // Benutzer verifizieren
-                user.verified = true;
-                
-                // Token aus der Liste entfernen
-                db.verificationTokens = db.verificationTokens.filter(t => t.token !== params.token);
-                
-                // Datenbank speichern
-                saveDatabaseData(db);
-                
-                // Auch im registered_users Array aktualisieren, wenn vorhanden
-                try {
-                    let registeredUsers = JSON.parse(localStorage.getItem('registered_users') || '[]');
-                    const regUser = registeredUsers.find(u => u.uid === params.user);
-                    if (regUser) {
-                        regUser.verified = true;
-                        localStorage.setItem('registered_users', JSON.stringify(registeredUsers));
-                    }
-                } catch (error) {
-                    console.error('Fehler beim Aktualisieren der registrierten Benutzer:', error);
-                }
-                
-                // Kurze Verzögerung, um den Ladevorgang zu simulieren
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Erfolgsfall anzeigen
-                verifyPending.style.display = 'none';
-                verifySuccess.style.display = 'block';
-                
             } catch (error) {
-                console.error('Fehler bei der Verifizierung:', error);
-                verifyPending.style.display = 'none';
-                verifyError.style.display = 'block';
-                errorDetails.textContent = error.message || 'Ein unbekannter Fehler ist aufgetreten.';
+                console.error('Fehler beim Lesen der Datenbank:', error);
+                showVerificationResult({
+                    success: false,
+                    message: "Ein Fehler ist aufgetreten. Bitte versuche es später erneut."
+                });
+                return;
+            }
+            
+            // Token in der Datenbank suchen
+            if (!db.verificationTokens) {
+                db.verificationTokens = [];
+            }
+            
+            const tokenInfo = db.verificationTokens.find(t => t.token === token);
+            
+            if (!tokenInfo) {
+                showVerificationResult({
+                    success: false,
+                    message: "Ungültiger Verifizierungstoken. Bitte überprüfe den Link aus deiner E-Mail."
+                });
+                return;
+            }
+            
+            // Prüfen, ob der Token abgelaufen ist
+            const now = new Date();
+            const expiresAt = new Date(tokenInfo.expires);
+            
+            if (expiresAt < now) {
+                showVerificationResult({
+                    success: false,
+                    message: "Der Verifizierungstoken ist abgelaufen. Bitte fordere einen neuen Token an."
+                });
+                return;
+            }
+            
+            // Benutzer suchen und als verifiziert markieren
+            const user = db.users.find(u => u.uid === tokenInfo.userId);
+            
+            if (!user) {
+                showVerificationResult({
+                    success: false,
+                    message: "Benutzer nicht gefunden. Bitte registriere dich erneut."
+                });
+                return;
+            }
+            
+            // Benutzer als verifiziert markieren
+            user.verified = true;
+            
+            // Token aus der Datenbank entfernen
+            db.verificationTokens = db.verificationTokens.filter(t => t.token !== token);
+            
+            // Datenbank speichern
+            localStorage.setItem('afk_bot_db', JSON.stringify(db));
+            
+            // Erfolgreich verifiziert
+            showVerificationResult({
+                success: true,
+                message: "Deine E-Mail-Adresse wurde erfolgreich bestätigt. Du kannst dich jetzt anmelden.",
+                email: user.email
+            });
+            
+            // Benachrichtigung erstellen, wenn der Benutzer eingeloggt ist
+            if (localStorage.getItem('user_id') === user.uid) {
+                // Funktion aus script.js verwenden, wenn vorhanden
+                if (typeof createNotification === 'function') {
+                    createNotification(
+                        user.uid, 
+                        "Deine E-Mail-Adresse wurde erfolgreich verifiziert!", 
+                        "success", 
+                        { actionUrl: "dashboard.html", actionText: "Zum Dashboard" }
+                    );
+                }
             }
         }
         
-        // Ausführen der Verifizierung, wenn die Seite geladen ist
-        document.addEventListener('DOMContentLoaded', verifyEmail);
+        /**
+         * Zeigt das Ergebnis der Verifizierung an
+         */
+        function showVerificationResult(result) {
+            const verificationContainer = document.getElementById('verification-container');
+            let iconClass, statusClass, title, message, buttonText, buttonUrl;
+            
+            if (result.success) {
+                iconClass = 'success-icon';
+                statusClass = 'verification-success';
+                title = 'E-Mail bestätigt!';
+                message = result.demoMode 
+                    ? `${result.message} In einer Live-Umgebung würde <span class="verification-email">${result.email}</span> verifiziert werden.`
+                    : `${result.message} Dein Konto für <span class="verification-email">${result.email}</span> wurde aktiviert.`;
+                buttonText = 'Zum Login';
+                buttonUrl = 'index.html';
+            } else {
+                iconClass = 'error-icon';
+                statusClass = 'verification-error';
+                title = 'Verifizierung fehlgeschlagen';
+                message = result.message;
+                buttonText = 'Zurück zur Startseite';
+                buttonUrl = 'index.html';
+            }
+            
+            verificationContainer.innerHTML = `
+                <span class="verification-icon ${iconClass} material-icons">
+                    ${result.success ? 'check_circle' : 'error'}
+                </span>
+                <h2 class="verification-title">${title}</h2>
+                <div class="verification-status ${statusClass}">
+                    <p class="verification-message">${message}</p>
+                </div>
+                <div class="verification-action">
+                    <a href="${buttonUrl}" class="btn-redirect">${buttonText}</a>
+                </div>
+                ${result.demoMode ? '<div class="demo-message">Dies ist nur eine Demo-Ansicht. In einer Live-Umgebung würde der Prozess eine echte E-Mail versenden.</div>' : ''}
+            `;
+        }
     </script>
 </body>
 </html>

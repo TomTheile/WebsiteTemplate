@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Mail-Simulationen - Herobrine AFK Bot</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .emails-container {
+            max-width: 900px;
+            margin: 30px auto;
+        }
+        
+        .email-list {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .email-list-header {
+            background: rgba(30, 255, 0, 0.1);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+        
+        .email-list-title {
+            font-size: 1.2rem;
+            color: #1eff00;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .email-count {
+            background: #1eff00;
+            color: #000;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .email-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .email-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .email-item.active {
+            background: rgba(30, 255, 0, 0.05);
+        }
+        
+        .email-item-icon {
+            color: #1eff00;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        
+        .email-item-content {
+            flex: 1;
+        }
+        
+        .email-item-subject {
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 5px 0;
+        }
+        
+        .email-item-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #999;
+            font-size: 0.8rem;
+        }
+        
+        .email-item-date {
+            white-space: nowrap;
+        }
+        
+        .email-detail {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .email-detail-header {
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .email-detail-subject {
+            font-size: 1.5rem;
+            color: #1eff00;
+            margin: 0 0 10px 0;
+        }
+        
+        .email-detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        .email-detail-meta-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .email-detail-meta-icon {
+            margin-right: 5px;
+            color: #1eff00;
+            font-size: 18px;
+        }
+        
+        .email-detail-content {
+            border: 1px solid #333;
+            background: #0f0f0f;
+            padding: 20px;
+            border-radius: 5px;
+            line-height: 1.6;
+            color: #ddd;
+        }
+        
+        .email-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .email-action-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            color: #ccc;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+        
+        .email-action-btn:hover {
+            background: rgba(30, 255, 0, 0.1);
+            border-color: #1eff00;
+            color: #1eff00;
+        }
+        
+        .email-action-btn-icon {
+            margin-right: 5px;
+            font-size: 18px;
+        }
+        
+        .no-emails {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+        
+        .no-emails-icon {
+            font-size: 50px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .no-emails-message {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        .no-email-selected {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        
+        .no-email-selected-icon {
+            font-size: 50px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .no-email-selected-message {
+            font-size: 1.1rem;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        
+        .iframe-container {
+            width: 100%;
+            border: 1px solid #333;
+            border-radius: 5px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .email-iframe {
+            width: 100%;
+            min-height: 400px;
+            border: none;
+            background: white;
+        }
+        
+        .refresh-btn {
+            background: rgba(30, 255, 0, 0.1);
+            border: 1px solid #1eff00;
+            color: #1eff00;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            transition: all 0.2s ease;
+        }
+        
+        .refresh-btn:hover {
+            background: rgba(30, 255, 0, 0.2);
+        }
+        
+        .refresh-btn-icon {
+            margin-right: 5px;
+        }
+        
+        .demo-info {
+            background: rgba(255, 255, 0, 0.1);
+            border: 1px solid #ffff00;
+            color: #ffff00;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        
+        .demo-info-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .demo-info-icon {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header (Top) -->
+        <div class="header">
+            <h1>E-Mail-Simulationen</h1>
+            <div class="quick-links">
+                <a href="index.html">Startseite</a>
+                <a href="dashboard.html">Dashboard</a>
+            </div>
+        </div>
+
+        <div class="emails-container">
+            <div class="demo-info">
+                <div class="demo-info-title">
+                    <span class="material-icons demo-info-icon">info</span>
+                    Demo-Modus: E-Mail-Simulation
+                </div>
+                <p>Da wir keine echte E-Mail-Funktionalität in dieser Demo-Umgebung haben, werden alle E-Mails hier simuliert. Jede "gesendete" E-Mail wird in deinem Browser gespeichert und hier angezeigt. In einer produktiven Umgebung würden die E-Mails tatsächlich an deine echte E-Mail-Adresse gesendet werden.</p>
+            </div>
+            
+            <div class="email-list-header">
+                <h2 class="email-list-title">Erhaltene E-Mails</h2>
+                <button id="refresh-btn" class="refresh-btn">
+                    <span class="material-icons refresh-btn-icon">refresh</span>
+                    Aktualisieren
+                </button>
+            </div>
+            
+            <div class="email-list" id="email-list">
+                <!-- E-Mail-Liste wird dynamisch gefüllt -->
+                <div class="no-emails">
+                    <div class="material-icons no-emails-icon">email</div>
+                    <div class="no-emails-message">Keine E-Mails gefunden</div>
+                    <p>Registriere einen neuen Benutzer, um Verifizierungs-E-Mails zu erhalten.</p>
+                </div>
+            </div>
+            
+            <div class="email-detail" id="email-detail" style="display: none;">
+                <!-- E-Mail-Details werden dynamisch gefüllt -->
+            </div>
+            
+            <div class="no-email-selected" id="no-email-selected">
+                <div class="material-icons no-email-selected-icon">mark_email_unread</div>
+                <div class="no-email-selected-message">Wähle eine E-Mail aus der Liste aus, um sie anzuzeigen</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Der fortschrittliche Minecraft Bot-Service</p>
+            <div class="footer-links">
+                <a href="#">Nutzungsbedingungen</a>
+                <a href="#">Datenschutz</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // E-Mails aus dem localStorage laden
+            loadEmails();
+            
+            // Refresh-Button
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                loadEmails();
+            });
+        });
+        
+        /**
+         * Lädt die E-Mails aus dem localStorage
+         */
+        function loadEmails() {
+            // E-Mails aus dem localStorage laden
+            let emails = [];
+            try {
+                const storedEmails = localStorage.getItem('sent_emails');
+                if (storedEmails) {
+                    emails = JSON.parse(storedEmails);
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der E-Mails:', error);
+            }
+            
+            // E-Mail-Liste rendern
+            const emailList = document.getElementById('email-list');
+            
+            if (emails.length === 0) {
+                emailList.innerHTML = `
+                    <div class="no-emails">
+                        <div class="material-icons no-emails-icon">email</div>
+                        <div class="no-emails-message">Keine E-Mails gefunden</div>
+                        <p>Registriere einen neuen Benutzer, um Verifizierungs-E-Mails zu erhalten.</p>
+                    </div>
+                `;
+                
+                document.getElementById('email-detail').style.display = 'none';
+                document.getElementById('no-email-selected').style.display = 'block';
+                
+                return;
+            }
+            
+            // E-Mails nach Datum sortieren (neueste zuerst)
+            emails.sort((a, b) => new Date(b.sent_at) - new Date(a.sent_at));
+            
+            // Liste aufbauen
+            let emailListHTML = `
+                <div class="email-count-container">
+                    <span class="email-count">${emails.length} E-Mail(s)</span>
+                </div>
+            `;
+            
+            emailListHTML += emails.map((email, index) => {
+                // Datum formatieren
+                const sentDate = new Date(email.sent_at);
+                const formattedDate = sentDate.toLocaleDateString('de-DE') + ' ' + sentDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+                
+                return `
+                    <div class="email-item" data-index="${index}">
+                        <span class="material-icons email-item-icon">mark_email_unread</span>
+                        <div class="email-item-content">
+                            <h3 class="email-item-subject">${email.subject}</h3>
+                            <div class="email-item-meta">
+                                <div class="email-item-recipient">An: ${email.to}</div>
+                                <div class="email-item-date">${formattedDate}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            emailList.innerHTML = emailListHTML;
+            
+            // Event-Listener für E-Mail-Auswahl
+            const emailItems = document.querySelectorAll('.email-item');
+            emailItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    selectEmail(emails[index], index);
+                    
+                    // Aktiven Status setzen
+                    emailItems.forEach(el => el.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Erste E-Mail automatisch auswählen
+            if (emails.length > 0) {
+                selectEmail(emails[0], 0);
+                if (emailItems.length > 0) {
+                    emailItems[0].classList.add('active');
+                }
+            }
+        }
+        
+        /**
+         * Zeigt die ausgewählte E-Mail an
+         */
+        function selectEmail(email, index) {
+            const emailDetail = document.getElementById('email-detail');
+            const noEmailSelected = document.getElementById('no-email-selected');
+            
+            // Datum formatieren
+            const sentDate = new Date(email.sent_at);
+            const formattedDate = sentDate.toLocaleDateString('de-DE') + ' ' + sentDate.toLocaleTimeString('de-DE');
+            
+            // Details anzeigen
+            emailDetail.innerHTML = `
+                <div class="email-detail-header">
+                    <h2 class="email-detail-subject">${email.subject}</h2>
+                    <div class="email-detail-meta">
+                        <div class="email-detail-meta-item">
+                            <span class="material-icons email-detail-meta-icon">person</span>
+                            <span>Von: Herobrine AFK Bot Team &lt;no-reply@herobrine-bot.de&gt;</span>
+                        </div>
+                        <div class="email-detail-meta-item">
+                            <span class="material-icons email-detail-meta-icon">person_outline</span>
+                            <span>An: ${email.to}</span>
+                        </div>
+                        <div class="email-detail-meta-item">
+                            <span class="material-icons email-detail-meta-icon">schedule</span>
+                            <span>Gesendet: ${formattedDate}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="iframe-container">
+                    <iframe id="email-content-frame" class="email-iframe" frameborder="0"></iframe>
+                </div>
+                
+                <div class="email-actions">
+                    <button class="email-action-btn" onclick="deleteEmail(${index})">
+                        <span class="material-icons email-action-btn-icon">delete</span>
+                        Löschen
+                    </button>
+                    
+                    <button class="email-action-btn" onclick="openInNewTab(${index})">
+                        <span class="material-icons email-action-btn-icon">open_in_new</span>
+                        In neuem Tab öffnen
+                    </button>
+                </div>
+            `;
+            
+            // E-Mail-Inhalt im iframe anzeigen
+            const iframe = document.getElementById('email-content-frame');
+            iframe.onload = function() {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                padding: 20px;
+                                margin: 0;
+                                color: #333;
+                                line-height: 1.5;
+                            }
+                            
+                            a {
+                                color: #1eff00;
+                                text-decoration: none;
+                            }
+                            
+                            a:hover {
+                                text-decoration: underline;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${email.html}
+                    </body>
+                    </html>
+                `);
+                iframeDoc.close();
+                
+                // Höhe des iframes an den Inhalt anpassen
+                iframe.style.height = iframeDoc.body.scrollHeight + 'px';
+            };
+            
+            emailDetail.style.display = 'block';
+            noEmailSelected.style.display = 'none';
+        }
+        
+        /**
+         * Löscht eine E-Mail
+         */
+        function deleteEmail(index) {
+            if (!confirm('Möchtest du diese E-Mail wirklich löschen?')) {
+                return;
+            }
+            
+            // E-Mails aus dem localStorage laden
+            let emails = [];
+            try {
+                const storedEmails = localStorage.getItem('sent_emails');
+                if (storedEmails) {
+                    emails = JSON.parse(storedEmails);
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der E-Mails:', error);
+                return;
+            }
+            
+            // E-Mail löschen
+            emails.splice(index, 1);
+            
+            // Zurück in den localStorage speichern
+            localStorage.setItem('sent_emails', JSON.stringify(emails));
+            
+            // E-Mails neu laden
+            loadEmails();
+        }
+        
+        /**
+         * Öffnet die E-Mail in einem neuen Tab
+         */
+        function openInNewTab(index) {
+            // E-Mails aus dem localStorage laden
+            let emails = [];
+            try {
+                const storedEmails = localStorage.getItem('sent_emails');
+                if (storedEmails) {
+                    emails = JSON.parse(storedEmails);
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der E-Mails:', error);
+                return;
+            }
+            
+            if (!emails[index]) {
+                return;
+            }
+            
+            // Neuen Tab öffnen und E-Mail anzeigen
+            const email = emails[index];
+            const newWindow = window.open('', '_blank');
+            
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>${email.subject}</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 40px;
+                            margin: 0;
+                            color: #333;
+                            line-height: 1.5;
+                            background-color: #f9f9f9;
+                        }
+                        
+                        .email-container {
+                            max-width: 700px;
+                            margin: 0 auto;
+                            background-color: #fff;
+                            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                            border-radius: 5px;
+                            overflow: hidden;
+                        }
+                        
+                        .email-header {
+                            background-color: #f3f3f3;
+                            padding: 20px;
+                            border-bottom: 1px solid #ddd;
+                        }
+                        
+                        .email-subject {
+                            margin: 0 0 15px 0;
+                            color: #333;
+                            font-size: 1.5rem;
+                        }
+                        
+                        .email-meta {
+                            font-size: 0.9rem;
+                            color: #777;
+                        }
+                        
+                        .email-meta-item {
+                            margin-bottom: 5px;
+                        }
+                        
+                        .email-body {
+                            padding: 20px;
+                        }
+                        
+                        a {
+                            color: #1eff00;
+                            text-decoration: none;
+                        }
+                        
+                        a:hover {
+                            text-decoration: underline;
+                        }
+                        
+                        .email-footer {
+                            background-color: #f3f3f3;
+                            padding: 15px 20px;
+                            font-size: 0.8rem;
+                            color: #999;
+                            text-align: center;
+                            border-top: 1px solid #ddd;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="email-container">
+                        <div class="email-header">
+                            <h1 class="email-subject">${email.subject}</h1>
+                            <div class="email-meta">
+                                <div class="email-meta-item"><strong>Von:</strong> Herobrine AFK Bot Team &lt;no-reply@herobrine-bot.de&gt;</div>
+                                <div class="email-meta-item"><strong>An:</strong> ${email.to}</div>
+                                <div class="email-meta-item"><strong>Datum:</strong> ${new Date(email.sent_at).toLocaleString('de-DE')}</div>
+                            </div>
+                        </div>
+                        <div class="email-body">
+                            ${email.html}
+                        </div>
+                        <div class="email-footer">
+                            Diese E-Mail wurde vom Herobrine AFK Bot-System gesendet. © 2025 Herobrine AFK Bot
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            newWindow.document.close();
+        }
+    </script>
+</body>
+</html>

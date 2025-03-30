@@ -24,7 +24,8 @@
         }
         
         .log-entry:hover {
-            background-color: #f9f9f9;
+            background-color: rgba(30, 255, 0, 0.1);
+            border-left: 3px solid #1eff00;
         }
         
         .log-entry:last-child {
@@ -82,9 +83,13 @@
         
         /* Sidebar */
         .sidebar {
-            background-color: rgba(0, 0, 0, 0.7);
-            border-right: 1px solid #333;
+            background-color: rgba(0, 0, 0, 0.85);
+            border-right: 1px solid #1eff00;
             padding: 20px 0;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+            border-radius: 10px 0 0 10px;
         }
         
         .user-profile {
@@ -143,7 +148,10 @@
         }
         
         .nav-item:hover:not(.active) {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: rgba(30, 255, 0, 0.05);
+            color: #e0e0e0;
+            border-left-color: rgba(30, 255, 0, 0.3);
+            box-shadow: inset 0 0 5px rgba(30, 255, 0, 0.1);
         }
         
         .nav-icon {
@@ -156,7 +164,11 @@
         /* Main Content */
         .main-content {
             padding: 20px;
-            background-color: rgba(0, 0, 0, 0.4);
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         
         .dashboard-header {
@@ -288,17 +300,37 @@
         }
         
         .stat-card {
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.75);
             border: 1px solid #333;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 20px;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
         }
         
         .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             border-color: #1eff00;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #1eff00, rgba(30, 255, 0, 0.3));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .stat-card:hover::before {
+            opacity: 1;
         }
         
         .stat-icon {
@@ -740,6 +772,9 @@
                     </li>
                     <li class="nav-item" data-page="settings">
                         <span class="nav-icon">⚙️</span> Einstellungen
+                    </li>
+                    <li class="nav-item" onclick="window.location.href='emails.html'">
+                        <span class="nav-icon">📧</span> E-Mails
                     </li>
                     <li class="nav-item admin-only" data-page="admin">
                         <span class="nav-icon">🔑</span> Admin-Bereich
