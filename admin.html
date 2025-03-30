@@ -250,6 +250,35 @@
             color: #000;
         }
         
+        /* Admin Action Button */
+        .admin-btn {
+            background: var(--admin-dark);
+            border: 1px solid var(--admin-light-gray);
+            color: var(--admin-text);
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .admin-btn:hover {
+            background-color: var(--admin-primary);
+            border-color: var(--admin-primary);
+            color: #000;
+        }
+        
+        .admin-btn.danger {
+            border-color: #f44336;
+            color: #f44336;
+        }
+        
+        .admin-btn.danger:hover {
+            background-color: #f44336;
+            color: #fff;
+        }
+        
         .action-btn.danger {
             border-color: #ff5555;
             color: #ff5555;
@@ -708,8 +737,11 @@
                 <div class="admin-page" id="bots-page">
                     <div class="content-header">
                         <h2>Bot-Verwaltung</h2>
-                        <div class="admin-search">
-                            <input type="text" placeholder="Bot suchen...">
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <button id="stop-all-bots" class="admin-btn danger">Alle Bots stoppen</button>
+                            <div class="admin-search">
+                                <input type="text" placeholder="Bot suchen...">
+                            </div>
                         </div>
                     </div>
                     
@@ -1055,6 +1087,7 @@
 
     <!-- Scripts -->
     <script src="script.js"></script>
+    <script src="admin-dashboard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

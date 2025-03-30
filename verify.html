@@ -112,10 +112,7 @@
         </div>
     </div>
 
-    <script type="module">
-        // Import der Datenbankfunktionen
-        import { sendVerificationEmail } from './database.js';
-        
+    <script>
         // Funktion zum Parsen der URL-Parameter
         function getUrlParams() {
             const params = {};
@@ -127,6 +124,29 @@
             }
             
             return params;
+        }
+        
+        // Hilfsfunktion: Datenbank aus localStorage lesen
+        function getDatabaseData() {
+            try {
+                const storedData = localStorage.getItem('afk_bot_db');
+                if (storedData) {
+                    return JSON.parse(storedData);
+                }
+            } catch (error) {
+                console.error('Fehler beim Lesen der Datenbank:', error);
+            }
+            return { users: [], bots: [], logs: [], verificationTokens: [] };
+        }
+        
+        // Hilfsfunktion: Datenbank in localStorage speichern
+        function saveDatabaseData(db) {
+            try {
+                localStorage.setItem('afk_bot_db', JSON.stringify(db));
+                console.log('Datenbank erfolgreich in localStorage gespeichert');
+            } catch (error) {
+                console.error('Fehler beim Schreiben der Datenbank:', error);
+            }
         }
         
         // Funktion zur Verifizierung der E-Mail
@@ -146,18 +166,62 @@
             }
             
             try {
-                // Simuliere eine Anfrage an den Server zur Verifizierung
-                // In einer echten Anwendung würde hier eine API-Anfrage stattfinden
+                // Datenbank aus dem localStorage laden
+                const db = getDatabaseData();
                 
-                // Kurze Verzögerung, um die Verifikation zu simulieren
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                // Überprüfen, ob der Token vorhanden ist
+                const tokenData = db.verificationTokens?.find(t => 
+                    t.token === params.token && 
+                    t.userId === params.user && 
+                    t.email === params.email
+                );
                 
-                // Erfolgsfall simulieren
+                if (!tokenData) {
+                    throw new Error('Ungültiger Verifizierungstoken. Der Link ist möglicherweise abgelaufen oder wurde bereits verwendet.');
+                }
+                
+                // Überprüfen, ob der Token abgelaufen ist
+                const now = new Date();
+                const expires = new Date(tokenData.expires);
+                
+                if (now > expires) {
+                    throw new Error('Der Verifizierungslink ist abgelaufen. Bitte fordere einen neuen an.');
+                }
+                
+                // Benutzer finden und verifizieren
+                const user = db.users.find(u => u.uid === params.user);
+                
+                if (!user) {
+                    throw new Error('Benutzer nicht gefunden. Bitte registriere dich erneut.');
+                }
+                
+                // Benutzer verifizieren
+                user.verified = true;
+                
+                // Token aus der Liste entfernen
+                db.verificationTokens = db.verificationTokens.filter(t => t.token !== params.token);
+                
+                // Datenbank speichern
+                saveDatabaseData(db);
+                
+                // Auch im registered_users Array aktualisieren, wenn vorhanden
+                try {
+                    let registeredUsers = JSON.parse(localStorage.getItem('registered_users') || '[]');
+                    const regUser = registeredUsers.find(u => u.uid === params.user);
+                    if (regUser) {
+                        regUser.verified = true;
+                        localStorage.setItem('registered_users', JSON.stringify(registeredUsers));
+                    }
+                } catch (error) {
+                    console.error('Fehler beim Aktualisieren der registrierten Benutzer:', error);
+                }
+                
+                // Kurze Verzögerung, um den Ladevorgang zu simulieren
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Erfolgsfall anzeigen
                 verifyPending.style.display = 'none';
                 verifySuccess.style.display = 'block';
-                
-                // In localStorage speichern, dass der Benutzer verifiziert ist
-                localStorage.setItem('verified_' + params.email, 'true');
                 
             } catch (error) {
                 console.error('Fehler bei der Verifizierung:', error);

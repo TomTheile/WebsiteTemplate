@@ -154,12 +154,36 @@ async function registerUser(email, password, username) {
     db.users.push(newUser);
     writeDatabase();
     
-    // Bestätigungs-E-Mail senden (in diesem Beispiel simuliert)
-    try {
-        await sendVerificationEmail(userId, email, username);
-    } catch (error) {
-        console.error('Fehler beim Senden der Bestätigungs-E-Mail:', error);
+    // Verifizierungstoken erstellen und Link generieren
+    const token = 'verify_' + Math.random().toString(36).substr(2, 10);
+    
+    // Token in der Datenbank speichern
+    if (!db.verificationTokens) {
+        db.verificationTokens = [];
     }
+    
+    db.verificationTokens.push({
+        token: token,
+        userId: userId,
+        email: email,
+        created: new Date().toISOString(),
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 Stunden gültig
+    });
+    
+    writeDatabase();
+    
+    // Erstelle den Verifizierungslink
+    const baseUrl = window.location.origin;
+    const verifyUrl = `${baseUrl}/verify.html?token=${token}&user=${userId}&email=${encodeURIComponent(email)}`;
+    
+    // Hier würde normalerweise die E-Mail versendet werden
+    // Zeige den Link in der Konsole und über ein Alert
+    console.log('--------------- VERIFIZIERUNGS-LINK ---------------');
+    console.log(verifyUrl);
+    console.log('--------------------------------------------------');
+    
+    // In einer echten Anwendung würde hier ein E-Mail-Service verwendet werden
+    alert(`Da wir aktuell keinen E-Mail-Server haben, verwende bitte folgenden Link zur Bestätigung deiner E-Mail-Adresse (kopieren und in einem neuen Tab öffnen):\n\n${verifyUrl}`);
     
     return { 
         success: true, 
@@ -227,25 +251,41 @@ async function loginUser(email, password) {
  * @returns {Promise<boolean>} - Erfolg oder Misserfolg
  */
 async function sendVerificationEmail(userId, email, username) {
-    console.log(`Sende Bestätigungs-E-Mail an ${email} (${username})...`);
+    console.log(`Generiere Verifizierungslink für ${email} (${username})...`);
     
-    // In einer echten Anwendung würde hier eine E-Mail über einen Dienst wie SendGrid gesendet werden
-    return new Promise((resolve) => {
-        // Simuliere eine Verzögerung von 1 Sekunde
-        setTimeout(() => {
-            console.log(`Bestätigungs-E-Mail an ${email} gesendet!`);
-            
-            // Für Testzwecke: Benutzer automatisch bestätigen
-            const user = db.users.find(user => user.uid === userId);
-            if (user) {
-                user.verified = true;
-                writeDatabase();
-                console.log(`Benutzer ${username} automatisch bestätigt (nur für Testzwecke)`);
-            }
-            
-            resolve(true);
-        }, 1000);
+    // Einen einfachen Verifikationstoken erstellen (in einer Produktionsumgebung würde dies sicherer sein)
+    const token = 'verify_' + Math.random().toString(36).substr(2, 10);
+    
+    // Token in der Datenbank speichern
+    if (!db.verificationTokens) {
+        db.verificationTokens = [];
+    }
+    
+    db.verificationTokens.push({
+        token: token,
+        userId: userId,
+        email: email,
+        created: new Date().toISOString(),
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 Stunden gültig
     });
+    
+    writeDatabase();
+    
+    // Erstelle den Verifikationslink
+    const baseUrl = window.location.origin;
+    const verifyUrl = `${baseUrl}/verify.html?token=${token}&user=${userId}&email=${encodeURIComponent(email)}`;
+    
+    // Hier würde normalerweise die E-Mail versendet werden
+    // Da wir keinen E-Mail-Server haben, zeigen wir den Link stattdessen in der Konsole an
+    console.log('--------------- VERIFIKATIONS-LINK ---------------');
+    console.log(verifyUrl);
+    console.log('--------------------------------------------------');
+    console.log('Bitte kopiere den Link und öffne ihn in einem neuen Tab, um deine E-Mail zu bestätigen');
+    
+    // Zeige dem Benutzer den Link als Alert, damit er ihn leicht kopieren kann
+    alert(`Da wir aktuell keinen E-Mail-Server haben, verwende bitte folgenden Link zur Bestätigung deiner E-Mail-Adresse (kopieren und in einem neuen Tab öffnen):\n\n${verifyUrl}`);
+    
+    return true;
 }
 
 /**

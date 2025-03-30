@@ -145,18 +145,63 @@
                     localStorage.setItem('email', email);
                     localStorage.setItem('user_role', isAdmin ? 'admin' : 'user');
                 } else {
-                    // Prüfen auf registrierte Benutzer im localStorage
+                    // Prüfen auf registrierte Benutzer in afk_bot_db
                     try {
-                        const registeredUsers = JSON.parse(localStorage.getItem('registered_users') || '[]');
-                        const user = registeredUsers.find(user => user.email === email && user.password === password);
+                        // Zuerst: Datenbank aus dem localStorage laden
+                        let db;
+                        try {
+                            const storedData = localStorage.getItem('afk_bot_db');
+                            if (storedData) {
+                                db = JSON.parse(storedData);
+                            } else {
+                                db = { users: [], bots: [], logs: [], verificationTokens: [] };
+                            }
+                        } catch (error) {
+                            console.error('Fehler beim Lesen der Datenbank:', error);
+                            db = { users: [], bots: [], logs: [], verificationTokens: [] };
+                        }
+                        
+                        // Benutzer in der Datenbank suchen
+                        const user = db.users?.find(user => user.email === email && user.password === password);
                         
                         if (user) {
+                            // Prüfen, ob die E-Mail-Adresse verifiziert wurde
+                            if (!user.verified) {
+                                const errorMessage = createStatusMessage('Bitte bestätige zuerst deine E-Mail-Adresse. Prüfe deinen Posteingang oder registriere dich erneut.', true);
+                                loginForm.appendChild(errorMessage);
+                                return;
+                            }
+                            
                             loginSuccess = true;
                             localStorage.setItem('auth_token', 'test_token_' + Date.now());
                             localStorage.setItem('user_id', user.uid);
                             localStorage.setItem('username', user.username);
                             localStorage.setItem('email', user.email);
                             localStorage.setItem('user_role', user.role || 'user');
+                            
+                            // Anmeldezeit aktualisieren
+                            user.last_login = new Date().toISOString();
+                            localStorage.setItem('afk_bot_db', JSON.stringify(db));
+                        } else {
+                            // Fallback: Prüfen auch in registrierten Benutzern im alten Format
+                            const registeredUsers = JSON.parse(localStorage.getItem('registered_users') || '[]');
+                            const oldUser = registeredUsers.find(user => user.email === email && user.password === password);
+                            
+                            if (oldUser) {
+                                // Prüfen, ob die E-Mail-Adresse verifiziert wurde
+                                if (!oldUser.verified) {
+                                    const errorMessage = createStatusMessage('Bitte bestätige zuerst deine E-Mail-Adresse. Prüfe deinen Posteingang oder registriere dich erneut.', true);
+                                    loginForm.appendChild(errorMessage);
+                                    return;
+                                }
+                                
+                                loginSuccess = true;
+                                localStorage.setItem('auth_token', 'test_token_' + Date.now());
+                                localStorage.setItem('user_id', oldUser.uid);
+                                localStorage.setItem('username', oldUser.username);
+                                localStorage.setItem('email', oldUser.email);
+                                localStorage.setItem('user_role', oldUser.role || 'user');
+                            }
                         }
                     } catch (error) {
                         console.error('Fehler beim Abrufen der Benutzerdaten:', error);
@@ -227,28 +272,112 @@
                     return;
                 }
                 
-                // Registrierung erfolgreich simulieren
-                const successMessage = createStatusMessage(
-                    'Registrierung erfolgreich! Bitte überprüfe deine E-Mails zur Bestätigung deines Kontos.'
-                );
-                registerForm.appendChild(successMessage);
-                
-                // Im localStorage speichern (für Testzwecke)
-                // In einer echten Anwendung würde dies natürlich auf dem Server gespeichert
+                // Benutzer in der Datenbank registrieren
                 try {
-                    let users = JSON.parse(localStorage.getItem('registered_users') || '[]');
-                    users.push({
-                        uid: 'user_' + Date.now(),
+                    // Zuerst: Datenbank aus dem localStorage laden oder initialisieren
+                    let db;
+                    try {
+                        const storedData = localStorage.getItem('afk_bot_db');
+                        if (storedData) {
+                            db = JSON.parse(storedData);
+                        } else {
+                            db = { users: [], bots: [], logs: [], verificationTokens: [] };
+                        }
+                    } catch (error) {
+                        console.error('Fehler beim Lesen der Datenbank:', error);
+                        db = { users: [], bots: [], logs: [], verificationTokens: [] };
+                    }
+                    
+                    // Prüfen, ob der Benutzername bereits existiert
+                    if (db.users && db.users.some(user => user.username === username)) {
+                        const errorMessage = createStatusMessage('Benutzername wird bereits verwendet', true);
+                        registerForm.appendChild(errorMessage);
+                        return;
+                    }
+                    
+                    // Neuen Benutzer erstellen
+                    const userId = 'user_' + Date.now();
+                    const newUser = {
+                        uid: userId,
                         username: username,
                         email: email,
                         password: password,  // In einer echten Anwendung niemals Passwörter im Klartext speichern!
                         role: 'user',
                         created_at: new Date().toISOString(),
-                        verified: false
+                        verified: false,
+                        isPremium: false,
+                        botsCreated: 0,
+                        maxBots: 1 // Normaler Benutzer hat einen kostenlosen Bot
+                    };
+                    
+                    // Benutzer zur Datenbank hinzufügen
+                    if (!db.users) db.users = [];
+                    db.users.push(newUser);
+                    
+                    // Datenbank speichern
+                    localStorage.setItem('afk_bot_db', JSON.stringify(db));
+                    
+                    // E-Mail-Verifizierungstoken erstellen
+                    const token = 'verify_' + Math.random().toString(36).substr(2, 10);
+                    
+                    // Token in der Datenbank speichern
+                    if (!db.verificationTokens) {
+                        db.verificationTokens = [];
+                    }
+                    
+                    db.verificationTokens.push({
+                        token: token,
+                        userId: userId,
+                        email: email,
+                        created: new Date().toISOString(),
+                        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 Stunden gültig
                     });
-                    localStorage.setItem('registered_users', JSON.stringify(users));
+                    
+                    // Datenbank speichern
+                    localStorage.setItem('afk_bot_db', JSON.stringify(db));
+                    
+                    // Erstelle den Verifizierungslink
+                    const baseUrl = window.location.origin;
+                    const verifyUrl = `${baseUrl}/verify.html?token=${token}&user=${userId}&email=${encodeURIComponent(email)}`;
+                    
+                    // Hier würde normalerweise die E-Mail versendet werden
+                    // Da wir keinen E-Mail-Server haben, zeigen wir den Link stattdessen in der Konsole an
+                    console.log('--------------- VERIFIZIERUNGS-LINK ---------------');
+                    console.log(verifyUrl);
+                    console.log('--------------------------------------------------');
+                    
+                    // Erfolgreiche Registrierung anzeigen
+                    const successMessage = createStatusMessage(
+                        'Registrierung erfolgreich! Bitte überprüfe deine E-Mails zur Bestätigung deines Kontos.'
+                    );
+                    registerForm.appendChild(successMessage);
+                    
+                    // Zeige dem Benutzer den Link als Alert, damit er ihn leicht kopieren kann
+                    setTimeout(() => {
+                        alert(`Da wir aktuell keinen E-Mail-Server haben, verwende bitte folgenden Link zur Bestätigung deiner E-Mail-Adresse (kopieren und in einem neuen Tab öffnen):\n\n${verifyUrl}`);
+                    }, 500);
+                    
+                    // Auch im alten registered_users Array speichern für Kompatibilität
+                    try {
+                        let users = JSON.parse(localStorage.getItem('registered_users') || '[]');
+                        users.push({
+                            uid: userId,
+                            username: username,
+                            email: email,
+                            password: password,
+                            role: 'user',
+                            created_at: new Date().toISOString(),
+                            verified: false
+                        });
+                        localStorage.setItem('registered_users', JSON.stringify(users));
+                    } catch (error) {
+                        console.error('Fehler beim Speichern der Benutzerdaten im alten Format:', error);
+                    }
+                    
                 } catch (error) {
-                    console.error('Fehler beim Speichern der Benutzerdaten:', error);
+                    console.error('Fehler beim Registrieren:', error);
+                    const errorMessage = createStatusMessage('Ein Fehler ist aufgetreten: ' + error.message, true);
+                    registerForm.appendChild(errorMessage);
                 }
                 
                 // Nach kurzer Zeit zum Login zurückkehren
