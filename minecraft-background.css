@@ -9,16 +9,25 @@
     --water-color: #155da7;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 body.minecraft-background {
-    background-color: #4a7dba; /* Himmel */
+    background-color: #4a7dba; /* Himmel-Fallback */
     position: relative;
     z-index: 0;
     margin: 0;
     padding: 0;
-    background-image: url('https://i.imgur.com/xPiLtHV.png');
+    /* Ein größeres, einzelnes Bild als Hintergrund */
+    background-image: url('https://i.imgur.com/dxjkVUu.jpg');
     background-size: cover;
+    background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center;
+    min-height: 100vh;
 }
 
 /* Ein Overlay, um den Hintergrund leicht abzudunkeln, damit der Inhalt besser lesbar ist */
@@ -92,12 +101,11 @@ body.minecraft-background::before {
     text-shadow: 1px 1px 0 #6e2121;
 }
 
-/* Minecraft Pixel-Border (optional - einfach zu aktivieren) */
+/* Einfarbiger Rahmen statt Pixel-Bild für weniger Bilder */
 .mc-border {
-    image-rendering: pixelated;
     border-style: solid;
     border-width: 4px;
-    border-image: url('https://i.imgur.com/fhMJoMh.png') 4 repeat;
+    border-color: #555;
 }
 
 /* Import der Minecraft-Schriftart */
@@ -154,11 +162,4 @@ body.minecraft-background::before {
     100% { transform: translateY(0); }
 }
 
-/* Minecraft Dirt Inventar Hintergrund */
-.mc-inventory-bg {
-    background-image: url('https://i.imgur.com/H8jYW7n.png');
-    background-repeat: repeat;
-    background-size: 64px;
-    image-rendering: pixelated;
-    background-color: var(--dirt-color);
-}
+/* Lösche den wiederholten Inventar-Hintergrund, da wir nur ein großes Bild wollen */
