@@ -1314,6 +1314,7 @@
     <script src="minecraft-animations.js"></script>
     <script src="minecraft-icons.js"></script>
     <script src="bot-mood.js"></script>
+    <script src="bot-animations.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Authentifizierung überprüfen
@@ -1579,22 +1580,35 @@
                                 botCard.className = 'bot-card ' + (bot.status === 'online' ? 'online' : 'offline');
                             }
                             
+                            // Bot-Metriken für diese Karte
+                            const botMetrics = {
+                                isOnline: bot.status === 'online',
+                                connectionQuality: bot.connectionQuality || 95,
+                                errorRate: bot.errorRate || 0,
+                                performance: bot.performance || 90,
+                                pingLatency: bot.pingLatency || 120,
+                                activity: bot.activity || 'exploring',
+                                health: bot.health || 100,
+                                mood: BotMood.determineMood({
+                                    isOnline: bot.status === 'online',
+                                    connectionQuality: bot.connectionQuality || 95,
+                                    errorRate: bot.errorRate || 0,
+                                    performance: bot.performance || 90,
+                                    pingLatency: bot.pingLatency || 120
+                                })
+                            };
+                            
+                            // Animierte Statusübergänge verwenden
+                            BotAnimations.animateStatusTransition(bot.id, botCard, botMetrics);
+                            
                             // Karten-Inhalt aktualisieren
                             botCard.innerHTML = `
                                 <div class="bot-status ${bot.status}"></div>
                                 <h4 class="bot-name">${bot.username}</h4>
                                 <p class="bot-server">${bot.server}</p>
                                 
-                                <!-- Bot-Stimmungs- und Leistungsindikatoren -->
-                                ${BotMood.generateStatusIndicators({
-                                    isOnline: bot.status === 'online',
-                                    connectionQuality: bot.connectionQuality || 95,
-                                    errorRate: bot.errorRate || 0,
-                                    performance: bot.performance || 90,
-                                    pingLatency: bot.pingLatency || 120,
-                                    activity: bot.activity || 'exploring',
-                                    health: bot.health || 100
-                                })}
+                                <!-- Bot-Stimmungs- und Leistungsindikatoren mit Animationsunterstützung -->
+                                ${BotMood.generateStatusIndicators(botMetrics)}
                                 
                                 <div class="bot-details">
                                     <div class="bot-detail">
@@ -1817,60 +1831,99 @@
                     const bot = data.bot;
                     
                     // Details anzeigen
-                    detailsContent.innerHTML = `
-                        ${BotMood.generateDetailedStatusCard({
+                    // Bot-Metriken für detaillierte Anzeige
+                    const botDetailsMetrics = {
+                        isOnline: bot.status === 'online',
+                        connectionQuality: bot.connectionQuality || 95,
+                        errorRate: bot.errorRate || 0,
+                        performance: bot.performance || 90,
+                        pingLatency: bot.pingLatency || 120,
+                        activity: bot.activity || 'exploring',
+                        health: bot.health || 100,
+                        mood: BotMood.determineMood({
                             isOnline: bot.status === 'online',
                             connectionQuality: bot.connectionQuality || 95,
                             errorRate: bot.errorRate || 0,
                             performance: bot.performance || 90,
-                            pingLatency: bot.pingLatency || 120,
-                            activity: bot.activity || 'exploring',
-                            health: bot.health || 100
-                        })}
-                        
-                        <div class="bot-details-grid" style="margin-top: 15px;">
-                            <div class="bot-detail-item">
-                                <strong>Name:</strong> ${bot.username}
-                            </div>
-                            <div class="bot-detail-item">
-                                <strong>Server:</strong> ${bot.server}
-                            </div>
-                            <div class="bot-detail-item">
-                                <strong>Status:</strong> <span class="${bot.status === 'online' ? 'status-online' : 'status-offline'}">${bot.status === 'online' ? 'Online' : 'Offline'}</span>
-                            </div>
-                            <div class="bot-detail-item">
-                                <strong>Version:</strong> ${bot.version || '1.16.5'}
-                            </div>
-                            <div class="bot-detail-item">
-                                <strong>Erstellt am:</strong> ${bot.createdAt || 'Unbekannt'}
-                            </div>
-                            <div class="bot-detail-item">
-                                <strong>Letzter Status:</strong> ${bot.lastStatus || 'Unbekannt'}
-                            </div>
-                            <div class="bot-detail-item">
-                                <strong>Auto-Reconnect:</strong> ${bot.autoReconnect ? 'Aktiviert' : 'Deaktiviert'}
-                            </div>
-                            <div class="bot-detail-item">
-                                <strong>Anti-AFK:</strong> ${bot.antiAFK ? 'Aktiviert' : 'Deaktiviert'}
-                            </div>
-                            <div class="bot-detail-item" style="grid-column: span 2; background: rgba(30, 255, 0, 0.05); padding: 10px; border-radius: 4px; margin-top: 10px;">
-                                <strong>KI-Funktionen:</strong>
-                                <ul style="margin-top: 5px; list-style-type: none; padding-left: 0;">
-                                    <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Intelligente Erkundung</li>
-                                    <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Adaptive Bewegungsmuster</li>
-                                    <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Reaktion auf Spieler</li>
-                                    <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Umgebungserkennung</li>
-                                    <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Sicherheitsverhalten</li>
-                                </ul>
-                            </div>
+                            pingLatency: bot.pingLatency || 120
+                        })
+                    };
+                    
+                    // Inhalt vorbereiten
+                    detailsContent.innerHTML = '';
+                    
+                    // Detaillierte Status-Karte erstellen
+                    const statusCard = document.createElement('div');
+                    statusCard.id = 'detailed-status-' + botId;
+                    statusCard.className = 'detailed-status-card';
+                    detailsContent.appendChild(statusCard);
+                    
+                    // Weitere Details erstellen
+                    const detailsGrid = document.createElement('div');
+                    detailsGrid.className = 'bot-details-grid';
+                    detailsGrid.style.marginTop = '15px';
+                    detailsContent.appendChild(detailsGrid);
+                    
+                    // Aktionen-Container erstellen
+                    const actionsContainer = document.createElement('div');
+                    actionsContainer.className = 'bot-actions';
+                    actionsContainer.style.marginTop = '20px';
+                    detailsContent.appendChild(actionsContainer);
+                    
+                    // Animierte Statusübergänge verwenden und dann Inhalt aktualisieren
+                    BotAnimations.updateBotStatusWithAnimation(
+                        botId + '-details', 
+                        statusCard, 
+                        botDetailsMetrics,
+                        (element, metrics) => {
+                            element.innerHTML = BotMood.generateDetailedStatusCard(metrics);
+                        }
+                    );
+                    
+                    // Details-Grid mit Informationen füllen
+                    detailsGrid.innerHTML = `
+                        <div class="bot-detail-item">
+                            <strong>Name:</strong> ${bot.username}
                         </div>
-                        
-                        <div class="bot-actions" style="margin-top: 20px;">
-                            ${bot.status === 'online' 
-                                ? '<button class="bot-btn stop" onclick="stopBot(\'' + bot.id + '\')">Bot stoppen</button>' 
-                                : '<button class="bot-btn start" onclick="startBot(\'' + bot.id + '\')">Bot starten</button>'}
-                            <button class="bot-btn" onclick="viewBotLogs('${bot.id}')">Logs anzeigen</button>
+                        <div class="bot-detail-item">
+                            <strong>Server:</strong> ${bot.server}
                         </div>
+                        <div class="bot-detail-item">
+                            <strong>Status:</strong> <span class="${bot.status === 'online' ? 'status-online' : 'status-offline'}">${bot.status === 'online' ? 'Online' : 'Offline'}</span>
+                        </div>
+                        <div class="bot-detail-item">
+                            <strong>Version:</strong> ${bot.version || '1.16.5'}
+                        </div>
+                        <div class="bot-detail-item">
+                            <strong>Erstellt am:</strong> ${bot.createdAt || 'Unbekannt'}
+                        </div>
+                        <div class="bot-detail-item">
+                            <strong>Letzter Status:</strong> ${bot.lastStatus || 'Unbekannt'}
+                        </div>
+                        <div class="bot-detail-item">
+                            <strong>Auto-Reconnect:</strong> ${bot.autoReconnect ? 'Aktiviert' : 'Deaktiviert'}
+                        </div>
+                        <div class="bot-detail-item">
+                            <strong>Anti-AFK:</strong> ${bot.antiAFK ? 'Aktiviert' : 'Deaktiviert'}
+                        </div>
+                        <div class="bot-detail-item" style="grid-column: span 2; background: rgba(30, 255, 0, 0.05); padding: 10px; border-radius: 4px; margin-top: 10px;">
+                            <strong>KI-Funktionen:</strong>
+                            <ul style="margin-top: 5px; list-style-type: none; padding-left: 0;">
+                                <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Intelligente Erkundung</li>
+                                <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Adaptive Bewegungsmuster</li>
+                                <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Reaktion auf Spieler</li>
+                                <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Umgebungserkennung</li>
+                                <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Sicherheitsverhalten</li>
+                            </ul>
+                        </div>
+                    `;
+                    
+                    // Aktionen-Buttons hinzufügen
+                    actionsContainer.innerHTML = `
+                        ${bot.status === 'online' 
+                            ? '<button class="bot-btn stop" onclick="stopBot(\'' + bot.id + '\')">Bot stoppen</button>' 
+                            : '<button class="bot-btn start" onclick="startBot(\'' + bot.id + '\')">Bot starten</button>'}
+                        <button class="bot-btn" onclick="viewBotLogs('${bot.id}')">Logs anzeigen</button>
                     `;
                 } else {
                     detailsContent.innerHTML = '<p style="text-align: center; padding: 20px;">Keine Details verfügbar.</p>';

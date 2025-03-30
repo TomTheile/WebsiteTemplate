@@ -2,6 +2,12 @@
  * Bot-Mood.js
  * Dieses Modul stellt Funktionen bereit, um die "Stimmung" und Leistung eines Bots darzustellen.
  * Es verwendet Emojis, um verschiedene Zustände wie Leistung, Aktivität und Gesundheit anzuzeigen.
+ * 
+ * Optimiert für geringen Ressourcenverbrauch:
+ * - Minimale DOM-Manipulation
+ * - Caching von Berechnungen
+ * - Reduzierte CSS-Generierung
+ * - Keine unnötigen Berechnungen
  */
 
 const BotMood = (function() {
@@ -361,12 +367,31 @@ const BotMood = (function() {
         return html;
     }
 
+    // Cache für berechnete Status-Karten zur Reduzierung der Ressourcennutzung
+    const statusCardCache = {
+        lastMetrics: null,
+        lastResult: '',
+        cacheTimeout: 5000 // Cache-Lifetime in ms
+    };
+
     /**
-     * Generiert eine detaillierte Bot-Status-Karte
+     * Generiert eine detaillierte Bot-Status-Karte (ressourcenoptimiert mit Caching)
      * @param {Object} botMetrics - Die Metriken des Bots
      * @returns {string} - HTML-String für eine detaillierte Statuskarte
      */
     function generateDetailedStatusCard(botMetrics) {
+        // Cache-Prüfung: Wenn die gleichen Metriken kürzlich verwendet wurden, verwende gecachtes Ergebnis
+        if (statusCardCache.lastMetrics && statusCardCache.lastResult) {
+            const now = Date.now();
+            
+            // Überprüfe, ob der Cache noch gültig ist und die Metriken ähnlich sind
+            if (now - statusCardCache.lastTimestamp < statusCardCache.cacheTimeout && 
+                areMetricsSimilar(statusCardCache.lastMetrics, botMetrics)) {
+                return statusCardCache.lastResult;
+            }
+        }
+        
+        // Bei Cache-Miss: Berechne neu
         const status = getBotStatus(botMetrics);
         
         let html = `
@@ -456,7 +481,37 @@ const BotMood = (function() {
             </div>
         `;
 
+        // Ergebnis im Cache speichern
+        statusCardCache.lastMetrics = JSON.parse(JSON.stringify(botMetrics)); // Tiefe Kopie
+        statusCardCache.lastResult = html;
+        statusCardCache.lastTimestamp = Date.now();
+        
         return html;
+    }
+    
+    /**
+     * Hilfsfunktion, um zu prüfen, ob zwei Metrik-Objekte ähnlich genug sind
+     * um den Cache zu verwenden (vermeidet unnötige Neuberechnungen)
+     * @private
+     */
+    function areMetricsSimilar(metrics1, metrics2) {
+        // Einfachste Prüfung: Online-Status
+        if (metrics1.isOnline !== metrics2.isOnline) return false;
+        
+        // Für numerische Werte: Maximal 5% Abweichung tolerieren
+        const numericProps = ['connectionQuality', 'errorRate', 'performance', 'pingLatency', 'health'];
+        for (const prop of numericProps) {
+            if (metrics1[prop] && metrics2[prop]) {
+                const diff = Math.abs(metrics1[prop] - metrics2[prop]);
+                const tolerance = metrics1[prop] * 0.05; // 5% Toleranz
+                if (diff > tolerance) return false;
+            }
+        }
+        
+        // Bei Aktivität: exakte Übereinstimmung erforderlich
+        if (metrics1.activity !== metrics2.activity) return false;
+        
+        return true;
     }
 
     /**

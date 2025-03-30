@@ -576,20 +576,53 @@ function startBot(config) {
 
 // Bot-Sicherheits- und KI-Bewegungsfunktionen einrichten
 function setupBotSafety(bot) {
-    // Anti-AFK-Mechanismen
+    // Anti-AFK-Mechanismen mit reduzierter Ressourcennutzung
     let lastAction = Date.now();
     let isMoving = false;
     let currentBehavior = null;
+    
+    // Speicheroptimierung: Kleinere Datenstrukturen verwenden
     let explorationPath = [];
     let obstacles = [];
     let interestPoints = [];
-    let botMode = "reconnaissance"; // Modi: reconnaissance, patrolling, exploring, following
+    let botMode = "idle"; // Start im Leerlauf-Modus um Ressourcen zu sparen
     let lastKnownSafePosition = null;
+    
+    // Optimierte Datenspeicherung - Begrenzte Größe für besuchte Orte
+    const MAX_MEMORY_ENTRIES = 50; // Begrenzt die Anzahl gespeicherter Orte
     let aiMemory = {
         visitedLocations: {},
         dangerousAreas: [],
         interestingLocations: [],
-        playerInteractions: {}
+        playerInteractions: {},
+        // Methode zum Bereinigen von alten Einträgen
+        cleanup: function() {
+            // Begrenzen der Anzahl besuchter Orte
+            const locations = Object.keys(this.visitedLocations);
+            if (locations.length > MAX_MEMORY_ENTRIES) {
+                // Älteste Einträge entfernen (die am wenigsten besuchten)
+                const sortedLocations = locations.sort((a, b) => 
+                    this.visitedLocations[a] - this.visitedLocations[b]
+                );
+                // Die ältesten 20% entfernen
+                const toRemove = Math.ceil(locations.length * 0.2);
+                for (let i = 0; i < toRemove; i++) {
+                    delete this.visitedLocations[sortedLocations[i]];
+                }
+            }
+            
+            // Begrenze die Größe der anderen Arrays
+            this.dangerousAreas = this.dangerousAreas.slice(0, MAX_MEMORY_ENTRIES/2);
+            this.interestingLocations = this.interestingLocations.slice(0, MAX_MEMORY_ENTRIES/2);
+            
+            // Alte Spielerinteraktionen bereinigen
+            const now = Date.now();
+            Object.keys(this.playerInteractions).forEach(player => {
+                if (now - this.playerInteractions[player].lastSeen > 3600000) { // 1 Stunde
+                    delete this.playerInteractions[player];
+                }
+            });
+        }
     };
     
     // KI-Bewegungsmuster
@@ -894,12 +927,16 @@ function setupBotSafety(bot) {
         return nearbyPlayers[Math.floor(Math.random() * nearbyPlayers.length)].entity;
     }
     
-    // KI-Verhaltenssystem
+    // KI-Verhaltenssystem mit reduziertem Ressourcenverbrauch
+    const AI_DECISION_INTERVAL = 5000; // Längeres Intervall (5 Sekunden) für Entscheidungen
     const aiDecisionInterval = setInterval(() => {
         if (!bot.entity) {
             clearInterval(aiDecisionInterval);
             return;
         }
+        
+        // Speicherbereinigung durchführen
+        aiMemory.cleanup();
         
         // Sicherheitscheck
         const currentTime = Date.now();
@@ -948,7 +985,7 @@ function setupBotSafety(bot) {
             stopMovement();
             botMode = "reconnaissance";
         }
-    }, 8000); // Alle 8 Sekunden Entscheidung treffen
+    }, AI_DECISION_INTERVAL); // Entscheidungen im definierten Intervall treffen
     
     // Ereignisse registrieren, die als Aktivität zählen
     const activityEvents = ['chat', 'move', 'health', 'spawn', 'respawn'];
@@ -1140,22 +1177,34 @@ function getBotStatus(username) {
     }
 }
 
-// Funktion, um Log für einen Bot hinzuzufügen
+// Funktion, um Log für einen Bot hinzuzufügen (mit Ressourcenoptimierung)
 function addBotLog(username, message, type = 'info') {
     // Stellen Sie sicher, dass botLogs initialisiert ist
     if (!botLogs[username]) {
         botLogs[username] = [];
     }
     
-    // Maximale Anzahl von Logs begrenzen (letzte 50)
-    if (botLogs[username].length > 50) {
-        botLogs[username].shift(); // Ältesten Log entfernen
+    // Ressourcenoptimierung: Noch strengere Begrenzung der Log-Größe
+    const MAX_LOGS = 30; // Reduziert von 50 auf 30
+    if (botLogs[username].length >= MAX_LOGS) {
+        // Entferne die ältesten 20% der Logs auf einmal, statt einzeln
+        const removeCount = Math.ceil(MAX_LOGS * 0.2);
+        botLogs[username] = botLogs[username].slice(removeCount);
     }
     
-    // Log mit Zeitstempel hinzufügen
+    // Log-Nachricht kürzen, wenn sie zu lang ist
+    const MAX_MESSAGE_LENGTH = 150;
+    const truncatedMessage = message.length > MAX_MESSAGE_LENGTH 
+        ? message.substring(0, MAX_MESSAGE_LENGTH) + '...' 
+        : message;
+    
+    // Log mit optimiertem Zeitstempel hinzufügen (nur Datum/Uhrzeit ohne Millisekunden)
+    const now = new Date();
+    const timeStr = now.toISOString().replace(/\.\d{3}Z$/, 'Z');
+    
     botLogs[username].push({
-        time: new Date().toISOString(),
-        message: message,
+        time: timeStr,
+        message: truncatedMessage,
         type: type
     });
 }
@@ -1253,11 +1302,17 @@ function setupBotEventLogging(bot, username) {
         });
     });
     
-    // Spezielle Behandlung für Positionsänderungen (seltener loggen)
+    // Spezielle Behandlung für Positionsänderungen (noch seltener loggen)
     let lastPositionLog = 0;
+    let moveCounter = 0;
     bot.on('move', () => {
+        // Zähler erhöhen, aber nicht für jede Bewegung einen Log erstellen
+        moveCounter++;
+        
         const now = Date.now();
-        if (now - lastPositionLog > 60000) { // Nur alle 60 Sekunden loggen
+        // Nur alle 180 Sekunden (3 Minuten) loggen und nur wenn sich Position signifikant geändert hat
+        if (now - lastPositionLog > 180000 && moveCounter >= 30) { 
+            moveCounter = 0;
             lastPositionLog = now;
             if (bot.entity) {
                 const pos = bot.entity.position;

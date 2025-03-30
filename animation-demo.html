@@ -3,347 +3,655 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft Animationen Demo</title>
-    <link rel="stylesheet" href="animations.css">
+    <title>Bot-Animation Demo</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #2E2E2E;
-            color: #FFFFFF;
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
             padding: 20px;
+            line-height: 1.6;
         }
         
         h1, h2, h3 {
-            font-family: 'Minecraft', monospace;
-            letter-spacing: 1px;
-            margin-top: 40px;
+            margin-bottom: 20px;
+            color: #1eff00;
         }
         
-        .demo-container {
-            max-width: 800px;
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
-            background-color: rgba(0, 0, 0, 0.2);
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
         
         .demo-section {
-            margin-bottom: 40px;
-            padding: 15px;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         
-        .demo-element {
-            width: 100px;
-            height: 100px;
-            margin: 10px;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #555;
-            color: white;
-            cursor: pointer;
-            border: 2px solid #444;
-        }
-        
-        .button-container {
-            margin: 20px 0;
+        .controls {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
+            margin-bottom: 20px;
         }
         
         button {
-            padding: 10px 15px;
-            background-color: #5B5B5B;
-            color: white;
-            border: 2px solid #444;
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
             cursor: pointer;
-            font-family: 'Minecraft', monospace;
-            font-size: 14px;
-            text-transform: uppercase;
-            transition: all 0.2s;
+            transition: all 0.3s;
         }
         
         button:hover {
-            background-color: #777777;
+            background-color: #3a3a3a;
         }
         
-        button:active {
-            background-color: #4A4A4A;
-            transform: translateY(2px);
+        button.active {
+            background-color: #1eff00;
+            color: #121212;
         }
         
-        .minecraft-button {
+        .demo-card {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .demo-card h3 {
+            margin-bottom: 10px;
+        }
+        
+        .demo-card p {
+            margin-bottom: 15px;
+            color: #aaa;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .bot-status {
             display: inline-block;
-            padding: 6px 12px;
-            background-color: #999999;
-            border: 2px solid #555555;
-            border-bottom: 4px solid #555555;
-            color: white;
-            font-family: 'Minecraft', monospace;
-            text-transform: uppercase;
-            text-decoration: none;
-            text-align: center;
-            transition: all 0.1s;
-            cursor: pointer;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
         }
         
-        .minecraft-button:hover {
-            background-color: #AAAAAA;
+        .bot-status.online {
+            background-color: #1eff00;
+            box-shadow: 0 0 8px #1eff00;
         }
         
-        .minecraft-button:active {
-            border-bottom: 2px solid #555555;
-            transform: translateY(2px);
+        .bot-status.offline {
+            background-color: #ff4a4a;
+            box-shadow: 0 0 8px #ff4a4a;
         }
         
-        .minecraft-header {
-            text-shadow: 2px 2px 0 #3a3a3a;
-            text-align: center;
-            color: #EFEFEF;
-        }
-        
-        #type-text-output {
-            min-height: 30px;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 4px;
-        }
-        
-        #grid-menu-container {
-            min-height: 200px;
+        .bot-indicators {
             display: flex;
-            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .bot-indicator {
+            display: flex;
             align-items: center;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .bot-indicator span {
+            margin-right: 4px;
+        }
+        
+        .demo-log {
+            background-color: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        
+        .log-entry {
+            margin-bottom: 4px;
+            color: #aaa;
+        }
+        
+        .time {
+            color: #888;
+        }
+        
+        .info {
+            color: #64b5f6;
+        }
+        
+        .success {
+            color: #1eff00;
+        }
+        
+        .warning {
+            color: #ffcc00;
+        }
+        
+        .error {
+            color: #ff4a4a;
+        }
+        
+        /* Statusanzeigen */
+        .status-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .status-emoji {
+            font-size: 1.5rem;
+        }
+        
+        .status-label {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        /* Bot-Karte Styling */
+        .bot-card {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 350px;
+        }
+        
+        .bot-card.online {
+            border-left: 4px solid #1eff00;
+        }
+        
+        .bot-card.offline {
+            border-left: 4px solid #ff4a4a;
+        }
+        
+        .bot-name {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+        
+        .bot-server {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .bot-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .bot-detail {
+            font-size: 0.8rem;
+            color: #ddd;
+        }
+        
+        .bot-detail span {
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .bot-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .bot-btn {
+            padding: 6px 12px;
+            background-color: #3a3a3a;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .bot-btn:hover {
+            background-color: #4a4a4a;
+        }
+        
+        .bot-btn.start {
+            background-color: #1eff00;
+            color: #000;
+        }
+        
+        .bot-btn.stop {
+            background-color: #ff4a4a;
+            color: #fff;
+        }
+        
+        /* Detaillierte Statuskarte */
+        .detailed-status-card {
+            background-color: rgba(30, 255, 0, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        /* Stimmungs-Panel */
+        .mood-panel {
+            display: flex;
+            justify-content: space-between;
+            background-color: #222;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .mood-item {
+            text-align: center;
+        }
+        
+        .mood-emoji {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .mood-label {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        
+        /* Code-Header */
+        .code-header {
+            background-color: #333;
+            padding: 8px 15px;
+            border-radius: 4px 4px 0 0;
+            font-family: monospace;
+            color: #1eff00;
+        }
+        
+        pre {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 0 0 4px 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 20px;
+        }
+        
+        code {
+            color: #e0e0e0;
+        }
+        
+        .btn-animate {
+            background-color: #1eff00;
+            color: #000;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="demo-container">
-        <h1 class="minecraft-header">Minecraft-Animationen</h1>
-        <p>Dieses Demo zeigt verschiedene Minecraft-inspirierte Animationen und Übergänge, die in der Anwendung verwendet werden können.</p>
+    <div class="container">
+        <h1>Bot-Animation Demo</h1>
+        <p>Diese Seite demonstriert die verschiedenen Bot-Status-Übergangsanimationen mit Retro-Spieleffekten.</p>
         
         <div class="demo-section">
-            <h2 class="minecraft-header">Lade-Animationen</h2>
+            <h2>Bot-Karten Demo</h2>
+            <p>Wähle eine Animation aus, um sie auf der Bot-Karte anzuwenden.</p>
             
-            <div class="button-container">
-                <button id="loading-screen-btn">Ladebildschirm anzeigen</button>
-                <button id="progress-loading-btn">Fortschrittsbalken-Ladebildschirm</button>
+            <div class="controls">
+                <button id="demo-boot" class="btn-animate">Boot Up (Offline → Online)</button>
+                <button id="demo-shutdown">Shutdown (Online → Offline)</button>
+                <button id="demo-improve">Status verbessern</button>
+                <button id="demo-decline">Status verschlechtern</button>
+                <button id="demo-glitch">Glitch-Effekt</button>
+                <button id="demo-particles">Partikel-Effekt</button>
+                <button id="demo-random">Zufällige Animation</button>
             </div>
             
-            <div class="demo-element" id="breaking-demo">
-                Block Breaking
+            <div class="demo-grid">
+                <div id="demo-bot-card" class="bot-card offline">
+                    <div class="bot-status offline"></div>
+                    <h4 class="bot-name">Demo-Bot</h4>
+                    <p class="bot-server">mc.server.example.com</p>
+                    
+                    <!-- Bot-Stimmungs- und Leistungsindikatoren -->
+                    <div id="status-indicators">
+                        <div class="status-display">
+                            <div class="status-emoji">😴</div>
+                            <div class="status-label">Offline</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bot-details">
+                        <div class="bot-detail">
+                            Version: <span>1.16.5</span>
+                        </div>
+                        <div class="bot-detail">
+                            Status: <span>Offline</span>
+                        </div>
+                        <div class="bot-detail" style="grid-column: span 2; margin-top: 5px;">
+                            <span style="background: rgba(30, 255, 0, 0.1); padding: 3px 6px; border-radius: 4px; font-size: 0.8rem; color: #1eff00;">
+                                <i style="margin-right: 4px;">🧠</i> KI-Steuerung aktiv
+                            </span>
+                        </div>
+                    </div>
+                    <div class="bot-actions">
+                        <button class="bot-btn">Logs</button>
+                        <button class="bot-btn">Details</button>
+                        <button class="bot-btn start">Starten</button>
+                    </div>
+                </div>
+                
+                <div class="detailed-status-card" id="demo-status-card">
+                    <h3>Bot-Status Details</h3>
+                    <div class="mood-panel">
+                        <div class="mood-item">
+                            <div class="mood-emoji">😴</div>
+                            <div class="mood-label">Stimmung</div>
+                        </div>
+                        <div class="mood-item">
+                            <div class="mood-emoji">⚡</div>
+                            <div class="mood-label">Leistung</div>
+                        </div>
+                        <div class="mood-item">
+                            <div class="mood-emoji">💤</div>
+                            <div class="mood-label">Aktivität</div>
+                        </div>
+                        <div class="mood-item">
+                            <div class="mood-emoji">❤️</div>
+                            <div class="mood-label">Gesundheit</div>
+                        </div>
+                    </div>
+                    <div class="bot-details">
+                        <div class="bot-detail">
+                            Verbindungs-Qualität: <span>0%</span>
+                        </div>
+                        <div class="bot-detail">
+                            Ping: <span>---</span>
+                        </div>
+                        <div class="bot-detail">
+                            Fehlerrate: <span>0%</span>
+                        </div>
+                        <div class="bot-detail">
+                            Leistung: <span>0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="demo-log" id="animation-log">
+                <div class="log-entry">
+                    <span class="time">[12:00:00]</span> <span class="info">Demo gestartet. Wähle eine Animation aus.</span>
+                </div>
             </div>
         </div>
         
         <div class="demo-section">
-            <h2 class="minecraft-header">Ein- und Ausblendeffekte</h2>
+            <h2>Animationstypen</h2>
+            <p>Die folgenden Animationstypen sind implementiert:</p>
             
-            <div class="button-container">
-                <button id="fade-in-btn">Element einblenden</button>
-                <button id="fade-out-btn">Element ausblenden</button>
-                <button id="container-open-btn">Container öffnen</button>
-            </div>
+            <div class="code-header">BOOT_UP</div>
+            <pre><code>Beim Starten eines Bots (offline → online):
+- Scanline-Animation
+- Flackern-Effekt
+- 8-bit Startup-Sound</code></pre>
             
-            <div id="fade-element" class="demo-element" style="display:none;">
-                Fade Effekt
-            </div>
+            <div class="code-header">SHUTDOWN</div>
+            <pre><code>Beim Stoppen eines Bots (online → offline):
+- Einfahren/Zusammenfallen
+- Verdunkeln
+- 8-bit Shutdown-Sound</code></pre>
             
-            <div id="container-element" style="display:none; background-color: #777; padding: 15px; margin-top: 20px;">
-                <h3>Minecraft Container</h3>
-                <p>Dieses Element öffnet sich wie ein Minecraft-Container.</p>
-            </div>
-        </div>
-        
-        <div class="demo-section">
-            <h2 class="minecraft-header">Elementanimationen</h2>
+            <div class="code-header">IMPROVE</div>
+            <pre><code>Bei Statusverbesserung:
+- Aufleuchten
+- Partikeleffekte (pixel-basiert)
+- Powerup-Sound</code></pre>
             
-            <div class="button-container">
-                <button id="bounce-btn">Element springen lassen</button>
-                <button id="rotate-btn">Element rotieren</button>
-                <button id="explode-btn">Element explodieren</button>
-            </div>
+            <div class="code-header">DECLINE</div>
+            <pre><code>Bei Statusverschlechterung:
+- Glitch-Effekt
+- RGB-Verschiebung
+- Alarmsound</code></pre>
             
-            <div class="demo-element" id="animation-element">
-                Animation
-            </div>
-        </div>
-        
-        <div class="demo-section">
-            <h2 class="minecraft-header">Minecraft UI Elemente</h2>
-            
-            <div class="button-container">
-                <button id="type-text-btn">Text schreiben</button>
-                <button id="grid-menu-btn">Grid-Menü anzeigen</button>
-            </div>
-            
-            <div id="type-text-output">Hier erscheint der getippte Text</div>
-            
-            <div id="grid-menu-container"></div>
-        </div>
-        
-        <div class="demo-section">
-            <h2 class="minecraft-header">Minecraft Icons</h2>
-            
-            <div id="icons-container" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+            <div class="code-header">DEFAULT</div>
+            <pre><code>Standard-Übergang:
+- Sanfte Skalierung
+- Leichte Transparenzänderung</code></pre>
         </div>
     </div>
     
-    <script src="minecraft-animations.js"></script>
-    <script src="minecraft-icons.js"></script>
+    <script src="bot-mood.js"></script>
+    <script src="bot-animations.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Lade-Animationen Demo
-            document.getElementById('loading-screen-btn').addEventListener('click', function() {
-                const loader = MCAnimations.showLoadingScreen('Welt wird geladen...');
+            const botCard = document.getElementById('demo-bot-card');
+            const statusCard = document.getElementById('demo-status-card');
+            const logContainer = document.getElementById('animation-log');
+            const statusIndicators = document.getElementById('status-indicators');
+            
+            // Bot-ID für das Tracking
+            const demoId = 'demo-bot-1';
+            
+            // Aktuelle Bot-Metriken
+            let botMetrics = {
+                isOnline: false,
+                connectionQuality: 0,
+                errorRate: 0,
+                performance: 0,
+                pingLatency: 0,
+                activity: 'idle',
+                health: 100
+            };
+            
+            // Log-Eintrag hinzufügen
+            function addLog(message, type = 'info') {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
                 
-                // Nach 3 Sekunden schließen
-                setTimeout(() => {
-                    loader.updateMessage('Welt erfolgreich geladen!');
-                    setTimeout(() => loader.close(), 500);
-                }, 3000);
-            });
-            
-            document.getElementById('progress-loading-btn').addEventListener('click', function() {
-                const loader = MCAnimations.showLoadingScreen('Daten werden geladen...', true);
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                logEntry.innerHTML = `<span class="time">[${timeString}]</span> <span class="${type}">${message}</span>`;
                 
-                // Fortschrittsbalken-Simulation
-                let progress = 0;
-                const interval = setInterval(() => {
-                    progress += 5;
-                    loader.updateProgress(progress);
-                    
-                    if (progress >= 100) {
-                        clearInterval(interval);
-                        loader.updateMessage('Laden abgeschlossen!');
-                        setTimeout(() => loader.close(), 500);
-                    }
-                }, 200);
-            });
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
             
-            document.getElementById('breaking-demo').addEventListener('click', function() {
-                MCAnimations.applyBlockBreaking(this, function() {
-                    alert('Block erfolgreich abgebaut!');
-                });
-            });
-            
-            // Ein- und Ausblendeffekte Demo
-            document.getElementById('fade-in-btn').addEventListener('click', function() {
-                const element = document.getElementById('fade-element');
-                MCAnimations.fadeInElement(element);
-            });
-            
-            document.getElementById('fade-out-btn').addEventListener('click', function() {
-                const element = document.getElementById('fade-element');
-                if (element.style.display !== 'none') {
-                    MCAnimations.fadeOutElement(element);
-                }
-            });
-            
-            document.getElementById('container-open-btn').addEventListener('click', function() {
-                const container = document.getElementById('container-element');
-                container.style.display = 'block';
-                MCAnimations.openContainer(container);
-            });
-            
-            // Elementanimationen Demo
-            document.getElementById('bounce-btn').addEventListener('click', function() {
-                const element = document.getElementById('animation-element');
-                MCAnimations.bounceElement(element);
-            });
-            
-            document.getElementById('rotate-btn').addEventListener('click', function() {
-                const element = document.getElementById('animation-element');
-                MCAnimations.rotateElement(element, false, 2000);
-            });
-            
-            document.getElementById('explode-btn').addEventListener('click', function() {
-                const element = document.getElementById('animation-element');
-                // Kopie erstellen, damit wir das Original nicht zerstören
-                const clonedElement = element.cloneNode(true);
-                element.parentNode.appendChild(clonedElement);
-                clonedElement.style.position = 'absolute';
-                clonedElement.style.top = `${element.offsetTop}px`;
-                clonedElement.style.left = `${element.offsetLeft}px`;
+            // UI mit aktuellen Metriken aktualisieren
+            function updateUI() {
+                // Bot-Karte aktualisieren
+                botCard.className = `bot-card ${botMetrics.isOnline ? 'online' : 'offline'}`;
                 
-                MCAnimations.explodeElement(clonedElement, true);
+                // Status-Dot aktualisieren
+                const statusDot = botCard.querySelector('.bot-status');
+                statusDot.className = `bot-status ${botMetrics.isOnline ? 'online' : 'offline'}`;
+                
+                // Detail-Bereich aktualisieren
+                const detailsArea = botCard.querySelector('.bot-details');
+                detailsArea.innerHTML = `
+                    <div class="bot-detail">
+                        Version: <span>1.16.5</span>
+                    </div>
+                    <div class="bot-detail">
+                        Status: <span>${botMetrics.isOnline ? 'Online' : 'Offline'}</span>
+                    </div>
+                    <div class="bot-detail" style="grid-column: span 2; margin-top: 5px;">
+                        <span style="background: rgba(30, 255, 0, 0.1); padding: 3px 6px; border-radius: 4px; font-size: 0.8rem; color: #1eff00;">
+                            <i style="margin-right: 4px;">🧠</i> KI-Steuerung ${botMetrics.isOnline ? 'aktiv' : 'inaktiv'}
+                        </span>
+                    </div>
+                `;
+                
+                // Actions aktualisieren
+                const actionsArea = botCard.querySelector('.bot-actions');
+                actionsArea.innerHTML = `
+                    <button class="bot-btn">Logs</button>
+                    <button class="bot-btn">Details</button>
+                    ${botMetrics.isOnline 
+                        ? '<button class="bot-btn stop">Stoppen</button>' 
+                        : '<button class="bot-btn start">Starten</button>'}
+                `;
+                
+                // Status-Indikatoren aktualisieren
+                statusIndicators.innerHTML = BotMood.generateStatusIndicators(botMetrics);
+                
+                // Detaillierte Status-Karte aktualisieren
+                statusCard.innerHTML = BotMood.generateDetailedStatusCard(botMetrics);
+            }
+            
+            // Boot-Animation
+            document.getElementById('demo-boot').addEventListener('click', function() {
+                addLog('Boot-Up Animation gestartet...', 'info');
+                
+                // Metriken aktualisieren
+                botMetrics.isOnline = true;
+                botMetrics.connectionQuality = 95;
+                botMetrics.performance = 90;
+                botMetrics.pingLatency = 120;
+                botMetrics.activity = 'exploring';
+                
+                // Animation anwenden
+                BotAnimations.animateStatusTransition(demoId, botCard, botMetrics);
+                BotAnimations.animateStatusTransition(demoId + '-details', statusCard, botMetrics);
+                
+                // UI nach kurzer Verzögerung aktualisieren
+                setTimeout(updateUI, 300);
+                
+                addLog('Bot wurde gestartet!', 'success');
             });
             
-            // Minecraft UI Elemente Demo
-            document.getElementById('type-text-btn').addEventListener('click', function() {
-                const textOutput = document.getElementById('type-text-output');
-                MCAnimations.typeText(textOutput, 'Willkommen in Minecraft! Dies ist ein Beispiel für einen getippten Text wie in Minecraft-Dialogen.', 30);
+            // Shutdown-Animation
+            document.getElementById('demo-shutdown').addEventListener('click', function() {
+                addLog('Shutdown Animation gestartet...', 'warning');
+                
+                // Metriken aktualisieren
+                botMetrics.isOnline = false;
+                botMetrics.connectionQuality = 0;
+                botMetrics.performance = 0;
+                botMetrics.pingLatency = 0;
+                botMetrics.activity = 'idle';
+                
+                // Animation anwenden
+                BotAnimations.animateStatusTransition(demoId, botCard, botMetrics);
+                BotAnimations.animateStatusTransition(demoId + '-details', statusCard, botMetrics);
+                
+                // UI nach kurzer Verzögerung aktualisieren
+                setTimeout(updateUI, 300);
+                
+                addLog('Bot wurde gestoppt', 'info');
             });
             
-            document.getElementById('grid-menu-btn').addEventListener('click', function() {
-                const container = document.getElementById('grid-menu-container');
-                container.innerHTML = '';
+            // Status verbessern
+            document.getElementById('demo-improve').addEventListener('click', function() {
+                addLog('Status-Verbesserung Animation gestartet...', 'info');
                 
-                MCAnimations.createGridMenu(container, [
-                    {
-                        icon: MinecraftIcons.getIcon('pickaxe'),
-                        text: 'Abbauen',
-                        onClick: function() { alert('Abbauwerkzeug ausgewählt!'); }
-                    },
-                    {
-                        icon: MinecraftIcons.getIcon('sword'),
-                        text: 'Kämpfen',
-                        onClick: function() { alert('Schwert ausgewählt!'); }
-                    },
-                    {
-                        icon: MinecraftIcons.getIcon('chest'),
-                        text: 'Inventar',
-                        onClick: function() { alert('Inventar geöffnet!'); }
-                    },
-                    {
-                        icon: MinecraftIcons.getIcon('furnace'),
-                        text: 'Schmelzen',
-                        onClick: function() { alert('Ofen ausgewählt!'); }
-                    },
-                    {
-                        icon: MinecraftIcons.getIcon('grassBlock'),
-                        text: 'Bauen',
-                        onClick: function() { alert('Baumodus ausgewählt!'); }
-                    },
-                    {
-                        icon: MinecraftIcons.getIcon('creeper'),
-                        text: 'Monster',
-                        onClick: function() { alert('Monster Information!'); }
-                    }
-                ]);
+                // Metriken verbessern
+                botMetrics.connectionQuality = Math.min(100, botMetrics.connectionQuality + 15);
+                botMetrics.performance = Math.min(100, botMetrics.performance + 20);
+                botMetrics.errorRate = Math.max(0, botMetrics.errorRate - 5);
+                
+                // Animation anwenden
+                BotAnimations.animateStatusTransition(demoId, botCard, botMetrics);
+                BotAnimations.animateStatusTransition(demoId + '-details', statusCard, botMetrics);
+                
+                // UI nach kurzer Verzögerung aktualisieren
+                setTimeout(updateUI, 300);
+                
+                addLog('Bot-Status hat sich verbessert!', 'success');
             });
             
-            // Icons Demo
-            const iconsContainer = document.getElementById('icons-container');
-            const iconList = [
-                'pickaxe', 'sword', 'axe', 'shovel', 
-                'grassBlock', 'stoneBlock', 
-                'creeper', 'zombie', 
-                'chest', 'furnace', 
-                'heart', 'loading'
-            ];
-            
-            iconList.forEach(iconName => {
-                const iconBox = document.createElement('div');
-                iconBox.style.textAlign = 'center';
-                iconBox.style.padding = '10px';
-                iconBox.style.background = 'rgba(255,255,255,0.1)';
-                iconBox.style.borderRadius = '5px';
+            // Status verschlechtern
+            document.getElementById('demo-decline').addEventListener('click', function() {
+                addLog('Status-Verschlechterung Animation gestartet...', 'warning');
                 
-                MinecraftIcons.appendIcon(iconBox, iconName, 40);
+                // Metriken verschlechtern
+                botMetrics.connectionQuality = Math.max(30, botMetrics.connectionQuality - 15);
+                botMetrics.performance = Math.max(30, botMetrics.performance - 20);
+                botMetrics.errorRate = Math.min(30, botMetrics.errorRate + 10);
                 
-                const label = document.createElement('div');
-                label.style.marginTop = '5px';
-                label.style.fontSize = '12px';
-                label.textContent = iconName;
-                iconBox.appendChild(label);
+                // Animation anwenden
+                BotAnimations.animateStatusTransition(demoId, botCard, botMetrics);
+                BotAnimations.animateStatusTransition(demoId + '-details', statusCard, botMetrics);
                 
-                iconsContainer.appendChild(iconBox);
+                // UI nach kurzer Verzögerung aktualisieren
+                setTimeout(updateUI, 300);
+                
+                addLog('Bot-Status hat sich verschlechtert!', 'error');
             });
+            
+            // Glitch-Effekt
+            document.getElementById('demo-glitch').addEventListener('click', function() {
+                addLog('Glitch-Effekt Animation gestartet...', 'warning');
+                
+                // Animation direkt anwenden
+                BotAnimations.createGlitchEffect(botCard, 2000);
+                BotAnimations.createGlitchEffect(statusCard, 2000);
+                
+                addLog('Glitch-Effekt angewendet', 'info');
+            });
+            
+            // Partikel-Effekt
+            document.getElementById('demo-particles').addEventListener('click', function() {
+                addLog('Partikel-Effekt Animation gestartet...', 'info');
+                
+                // Animation direkt anwenden
+                BotAnimations.createParticleEffect(botCard, 30);
+                BotAnimations.createParticleEffect(statusCard, 30);
+                
+                addLog('Partikel-Effekt angewendet', 'success');
+            });
+            
+            // Zufällige Animation
+            document.getElementById('demo-random').addEventListener('click', function() {
+                const animations = [
+                    'demo-boot', 'demo-shutdown', 'demo-improve', 
+                    'demo-decline', 'demo-glitch', 'demo-particles'
+                ];
+                
+                // Zufällige Animation auswählen
+                const randomAnim = animations[Math.floor(Math.random() * animations.length)];
+                document.getElementById(randomAnim).click();
+                
+                addLog(`Zufällige Animation ausgewählt: ${randomAnim.replace('demo-', '')}`, 'info');
+            });
+            
+            // Initialisieren
+            updateUI();
+            addLog('Animation Demo bereit!', 'success');
         });
     </script>
 </body>
