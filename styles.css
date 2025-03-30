@@ -65,7 +65,7 @@ body {
 
 /* Auth Section */
 .auth-section {
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: #000000; /* Reines Schwarz */
     border-radius: 10px;
     padding: 30px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -149,7 +149,7 @@ body {
 
 /* Quick Guide */
 .quick-guide {
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: #000000; /* Reines Schwarz */
     border-radius: 10px;
     padding: 30px;
 }
