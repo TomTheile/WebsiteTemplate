@@ -1330,6 +1330,11 @@
                                             ? 'Online seit: <span>' + (bot.uptime || '0m') + '</span>' 
                                             : 'Status: <span>Offline</span>'}
                                     </div>
+                                    <div class="bot-detail" style="grid-column: span 2; margin-top: 5px;">
+                                        <span style="background: rgba(30, 255, 0, 0.1); padding: 3px 6px; border-radius: 4px; font-size: 0.8rem; color: #1eff00;">
+                                            <i style="margin-right: 4px;">🧠</i> KI-Steuerung aktiv
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="bot-actions">
                                     <button class="bot-btn" onclick="viewBotLogs('${bot.id}')">Logs</button>
@@ -1545,6 +1550,16 @@
                             </div>
                             <div class="bot-detail-item">
                                 <strong>Anti-AFK:</strong> ${bot.antiAFK ? 'Aktiviert' : 'Deaktiviert'}
+                            </div>
+                            <div class="bot-detail-item" style="grid-column: span 2; background: rgba(30, 255, 0, 0.05); padding: 10px; border-radius: 4px; margin-top: 10px;">
+                                <strong>KI-Funktionen:</strong>
+                                <ul style="margin-top: 5px; list-style-type: none; padding-left: 0;">
+                                    <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Intelligente Erkundung</li>
+                                    <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Adaptive Bewegungsmuster</li>
+                                    <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Reaktion auf Spieler</li>
+                                    <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Umgebungserkennung</li>
+                                    <li style="padding: 3px 0;"><span style="color: #1eff00;">✓</span> Sicherheitsverhalten</li>
+                                </ul>
                             </div>
                         </div>
                         

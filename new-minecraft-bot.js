@@ -5,6 +5,27 @@ if (typeof window !== 'undefined') {
 }
 
 const mineflayer = require('mineflayer');
+// Versuche, zusätzliche Plugins zu laden, falls verfügbar
+let pathfinder;
+try {
+    pathfinder = require('mineflayer-pathfinder');
+} catch (e) {
+    console.log('Mineflayer-Pathfinder nicht verfügbar - Verwende einfache Bewegung');
+}
+
+let collectBlock;
+try {
+    collectBlock = require('mineflayer-collectblock').plugin;
+} catch (e) {
+    console.log('Mineflayer-CollectBlock nicht verfügbar');
+}
+
+let pvp;
+try {
+    pvp = require('mineflayer-pvp').plugin;
+} catch (e) {
+    console.log('Mineflayer-PVP nicht verfügbar');
+}
 
 // Aktive Bots speichern
 let activeBots = {};
@@ -105,6 +126,34 @@ function startBot(config) {
                 clearTimeout(connectionTimeout); // Timeout löschen
                 console.log(`Bot ${username}_Bot erfolgreich mit Server verbunden`);
                 
+                // Lade Plugins wenn verfügbar
+                try {
+                    // Pathfinder-Plugin laden
+                    if (pathfinder) {
+                        bot.loadPlugin(pathfinder.pathfinder);
+                        bot.pathfinder.setMovements(new pathfinder.Movements(bot));
+                        console.log(`Pathfinder für Bot ${username}_Bot erfolgreich geladen`);
+                        addBotLog(username, "Pathfinder-KI erfolgreich aktiviert", "success");
+                    }
+                    
+                    // CollectBlock-Plugin laden (zum Sammeln von Ressourcen)
+                    if (collectBlock) {
+                        bot.loadPlugin(collectBlock);
+                        console.log(`CollectBlock für Bot ${username}_Bot erfolgreich geladen`);
+                        addBotLog(username, "Ressourcensammel-KI erfolgreich aktiviert", "success");
+                    }
+                    
+                    // PVP-Plugin laden (für Kampf-KI)
+                    if (pvp) {
+                        bot.loadPlugin(pvp);
+                        console.log(`PVP für Bot ${username}_Bot erfolgreich geladen`);
+                        addBotLog(username, "Kampf-KI erfolgreich aktiviert", "success");
+                    }
+                } catch (e) {
+                    console.error(`Fehler beim Laden der Plugins für Bot ${username}_Bot: ${e.message}`);
+                    addBotLog(username, `Konnte einige KI-Funktionen nicht laden: ${e.message}`, "warning");
+                }
+                
                 // Sicherheitsmechanismen einrichten
                 setupBotSafety(bot);
                 
@@ -176,6 +225,34 @@ function startBot(config) {
                             newBot.once('spawn', () => {
                                 console.log(`Bot ${username}_Bot mit korrekter Version ${correctVersion} verbunden!`);
                                 clearTimeout(connectionTimeout); // Timeout löschen
+                                
+                                // Lade Plugins wenn verfügbar
+                                try {
+                                    // Pathfinder-Plugin laden
+                                    if (pathfinder) {
+                                        newBot.loadPlugin(pathfinder.pathfinder);
+                                        newBot.pathfinder.setMovements(new pathfinder.Movements(newBot));
+                                        console.log(`Pathfinder für Bot ${username}_Bot erfolgreich geladen`);
+                                        addBotLog(username, "Pathfinder-KI erfolgreich aktiviert", "success");
+                                    }
+                                    
+                                    // CollectBlock-Plugin laden (zum Sammeln von Ressourcen)
+                                    if (collectBlock) {
+                                        newBot.loadPlugin(collectBlock);
+                                        console.log(`CollectBlock für Bot ${username}_Bot erfolgreich geladen`);
+                                        addBotLog(username, "Ressourcensammel-KI erfolgreich aktiviert", "success");
+                                    }
+                                    
+                                    // PVP-Plugin laden (für Kampf-KI)
+                                    if (pvp) {
+                                        newBot.loadPlugin(pvp);
+                                        console.log(`PVP für Bot ${username}_Bot erfolgreich geladen`);
+                                        addBotLog(username, "Kampf-KI erfolgreich aktiviert", "success");
+                                    }
+                                } catch (e) {
+                                    console.error(`Fehler beim Laden der Plugins für Bot ${username}_Bot: ${e.message}`);
+                                    addBotLog(username, `Konnte einige KI-Funktionen nicht laden: ${e.message}`, "warning");
+                                }
                                 
                                 // Bot-Sicherheitsfunktionen einrichten
                                 setupBotSafety(newBot);
@@ -326,6 +403,35 @@ function startBot(config) {
                                     
                                     newBot.once('spawn', () => {
                                         console.log(`Bot ${username}_Bot wurde erfolgreich neu verbunden!`);
+                                        
+                                        // Lade Plugins wenn verfügbar
+                                        try {
+                                            // Pathfinder-Plugin laden
+                                            if (pathfinder) {
+                                                newBot.loadPlugin(pathfinder.pathfinder);
+                                                newBot.pathfinder.setMovements(new pathfinder.Movements(newBot));
+                                                console.log(`Pathfinder für Bot ${username}_Bot erfolgreich geladen`);
+                                                addBotLog(username, "Pathfinder-KI erfolgreich aktiviert", "success");
+                                            }
+                                            
+                                            // CollectBlock-Plugin laden
+                                            if (collectBlock) {
+                                                newBot.loadPlugin(collectBlock);
+                                                console.log(`CollectBlock für Bot ${username}_Bot erfolgreich geladen`);
+                                                addBotLog(username, "Ressourcensammel-KI erfolgreich aktiviert", "success");
+                                            }
+                                            
+                                            // PVP-Plugin laden
+                                            if (pvp) {
+                                                newBot.loadPlugin(pvp);
+                                                console.log(`PVP für Bot ${username}_Bot erfolgreich geladen`);
+                                                addBotLog(username, "Kampf-KI erfolgreich aktiviert", "success");
+                                            }
+                                        } catch (e) {
+                                            console.error(`Fehler beim Laden der Plugins für Bot ${username}_Bot: ${e.message}`);
+                                            addBotLog(username, `Konnte einige KI-Funktionen nicht laden: ${e.message}`, "warning");
+                                        }
+                                        
                                         // Bot zur aktiven Liste hinzufügen
                                         activeBots[username] = newBot;
                                         
@@ -404,6 +510,35 @@ function startBot(config) {
                                 
                                 newBot.once('spawn', () => {
                                     console.log(`Bot ${username}_Bot wurde nach Verbindungsabbruch erfolgreich neu verbunden!`);
+                                    
+                                    // Lade Plugins wenn verfügbar
+                                    try {
+                                        // Pathfinder-Plugin laden
+                                        if (pathfinder) {
+                                            newBot.loadPlugin(pathfinder.pathfinder);
+                                            newBot.pathfinder.setMovements(new pathfinder.Movements(newBot));
+                                            console.log(`Pathfinder für Bot ${username}_Bot erfolgreich geladen`);
+                                            addBotLog(username, "Pathfinder-KI erfolgreich aktiviert", "success");
+                                        }
+                                        
+                                        // CollectBlock-Plugin laden
+                                        if (collectBlock) {
+                                            newBot.loadPlugin(collectBlock);
+                                            console.log(`CollectBlock für Bot ${username}_Bot erfolgreich geladen`);
+                                            addBotLog(username, "Ressourcensammel-KI erfolgreich aktiviert", "success");
+                                        }
+                                        
+                                        // PVP-Plugin laden
+                                        if (pvp) {
+                                            newBot.loadPlugin(pvp);
+                                            console.log(`PVP für Bot ${username}_Bot erfolgreich geladen`);
+                                            addBotLog(username, "Kampf-KI erfolgreich aktiviert", "success");
+                                        }
+                                    } catch (e) {
+                                        console.error(`Fehler beim Laden der Plugins für Bot ${username}_Bot: ${e.message}`);
+                                        addBotLog(username, `Konnte einige KI-Funktionen nicht laden: ${e.message}`, "warning");
+                                    }
+                                    
                                     // Bot zur aktiven Liste hinzufügen
                                     activeBots[username] = newBot;
                                     
@@ -439,46 +574,381 @@ function startBot(config) {
     });
 }
 
-// Bot-Sicherheitsfunktionen einrichten
+// Bot-Sicherheits- und KI-Bewegungsfunktionen einrichten
 function setupBotSafety(bot) {
     // Anti-AFK-Mechanismen
     let lastAction = Date.now();
+    let isMoving = false;
+    let currentBehavior = null;
+    let explorationPath = [];
+    let obstacles = [];
+    let interestPoints = [];
+    let botMode = "reconnaissance"; // Modi: reconnaissance, patrolling, exploring, following
+    let lastKnownSafePosition = null;
+    let aiMemory = {
+        visitedLocations: {},
+        dangerousAreas: [],
+        interestingLocations: [],
+        playerInteractions: {}
+    };
     
-    // Periodisch prüfen und handeln
-    const safetyInterval = setInterval(() => {
-        if (!bot.entity) return; // Prüfen, ob Bot noch verbunden ist
+    // KI-Bewegungsmuster
+    const aiMovementPatterns = {
+        // Erkundet die Umgebung und merkt sich interessante Orte
+        explore: () => {
+            addBotLog(bot.username, "KI-Modus: Erkundung der Umgebung", "info");
+            // Sichere aktuelle Position
+            lastKnownSafePosition = bot.entity.position.clone();
+            
+            // Zufällige Richtung wählen und dorthin bewegen
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 5 + Math.random() * 15; // 5-20 Blöcke
+            
+            // Verwende PathFinder, wenn verfügbar
+            if (bot.pathfinder) {
+                const targetPosition = bot.entity.position.offset(
+                    Math.cos(angle) * distance,
+                    0,
+                    Math.sin(angle) * distance
+                );
+                
+                try {
+                    // Suche sicheren Pfad zum Ziel
+                    bot.pathfinder.setGoal(new bot.pathfinder.goals.GoalNear(
+                        targetPosition.x, targetPosition.y, targetPosition.z, 1
+                    ));
+                    addBotLog(bot.username, `Erkunde neue Position: ${targetPosition.x.toFixed(1)}, ${targetPosition.y.toFixed(1)}, ${targetPosition.z.toFixed(1)}`, "info");
+                    
+                    // Position im Gedächtnis speichern
+                    const posKey = `${Math.floor(targetPosition.x)},${Math.floor(targetPosition.y)},${Math.floor(targetPosition.z)}`;
+                    aiMemory.visitedLocations[posKey] = (aiMemory.visitedLocations[posKey] || 0) + 1;
+                } catch (e) {
+                    // Fallback, wenn Pathfinding fehlschlägt
+                    simpleMove(angle, distance);
+                }
+            } else {
+                simpleMove(angle, distance);
+            }
+            
+            // Umgebung scannen nach interessanten Orten
+            scanSurroundings();
+        },
         
-        // Wenn zu lange keine Aktion, etwas tun
-        const currentTime = Date.now();
-        if (currentTime - lastAction > 5 * 60 * 1000) { // 5 Minuten
-            // Zufällige Aktion ausführen
-            const actions = [
-                () => bot.setControlState('jump', true),
-                () => {
-                    bot.setControlState('forward', true);
-                    setTimeout(() => bot.setControlState('forward', false), 500);
-                },
-                () => bot.look(Math.random() * Math.PI * 2, 0),
-                () => bot.swingArm()
+        // Patrouilliert zwischen bekannten Orten
+        patrol: () => {
+            addBotLog(bot.username, "KI-Modus: Patrouille starten", "info");
+            
+            // Falls Patrol-Pfad leer ist, erstelle neuen
+            if (explorationPath.length === 0) {
+                // Erstelle einen Patrouillenpfad basierend auf interessanten Orten
+                if (interestPoints.length >= 2) {
+                    // Verwendet bereits entdeckte interessante Orte
+                    explorationPath = [...interestPoints];
+                    
+                    // Mische die Punkte, um Abwechslung zu schaffen
+                    for (let i = explorationPath.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [explorationPath[i], explorationPath[j]] = [explorationPath[j], explorationPath[i]];
+                    }
+                } else {
+                    // Wenn keine interessanten Orte bekannt sind, erstelle zufälligen Pfad
+                    const startPos = bot.entity.position.clone();
+                    explorationPath = [];
+                    
+                    // Erstelle einen Kreis von Punkten um den Bot herum
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i / 5) * Math.PI * 2;
+                        const distance = 10 + Math.random() * 5;
+                        explorationPath.push({
+                            x: startPos.x + Math.cos(angle) * distance,
+                            y: startPos.y,
+                            z: startPos.z + Math.sin(angle) * distance
+                        });
+                    }
+                    
+                    // Füge Startposition am Ende hinzu, um Rundweg zu machen
+                    explorationPath.push({
+                        x: startPos.x,
+                        y: startPos.y,
+                        z: startPos.z
+                    });
+                }
+            }
+            
+            // Zum nächsten Punkt im Patrouillenpfad bewegen
+            if (explorationPath.length > 0) {
+                const nextPoint = explorationPath[0];
+                
+                if (bot.pathfinder) {
+                    try {
+                        bot.pathfinder.setGoal(new bot.pathfinder.goals.GoalNear(
+                            nextPoint.x, nextPoint.y, nextPoint.z, 1
+                        ));
+                        addBotLog(bot.username, `Patrouilliere zu Position: ${nextPoint.x.toFixed(1)}, ${nextPoint.y.toFixed(1)}, ${nextPoint.z.toFixed(1)}`, "info");
+                    } catch (e) {
+                        // Fehler beim Pathfinding, wechsle zu anderem Punkt
+                        explorationPath.shift();
+                        if (explorationPath.length > 0) {
+                            const alternatePoint = explorationPath[0];
+                            moveToPosition(alternatePoint);
+                        } else {
+                            // Wenn keine Punkte mehr übrig sind, wechsle zu Erkundungsmodus
+                            botMode = "reconnaissance";
+                        }
+                    }
+                } else {
+                    // Einfache Bewegung, wenn kein Pathfinder verfügbar
+                    moveToPosition(nextPoint);
+                }
+                
+                // Entferne Punkte, wenn der Bot nahe genug ist
+                const distance = bot.entity.position.distanceTo(nextPoint);
+                if (distance < 2) {
+                    addBotLog(bot.username, "Patrouillenpunkt erreicht", "success");
+                    explorationPath.shift();
+                    
+                    // Schaue dich am Zielpunkt um
+                    setTimeout(() => {
+                        bot.look(Math.random() * Math.PI * 2, Math.random() * Math.PI - Math.PI / 2);
+                    }, 500);
+                }
+            }
+        },
+        
+        // Sucht nach anderen Spielern und folgt ihnen
+        followNearbyPlayer: () => {
+            addBotLog(bot.username, "KI-Modus: Spielersuche", "info");
+            
+            // Suche nach dem nächsten Spieler
+            const playerEntity = getNearestPlayer();
+            
+            if (playerEntity) {
+                botMode = "following"; // Wechsle in den Folgemodus
+                addBotLog(bot.username, `Folge Spieler: ${playerEntity.username}`, "info");
+                
+                // Spieler in Erinnerung speichern
+                aiMemory.playerInteractions[playerEntity.username] = {
+                    lastSeen: Date.now(),
+                    followed: true,
+                    position: playerEntity.position.clone()
+                };
+                
+                if (bot.pathfinder) {
+                    // Nutze Pathfinder, um dem Spieler zu folgen
+                    bot.pathfinder.setGoal(new bot.pathfinder.goals.GoalFollow(playerEntity, 3));
+                } else {
+                    // Einfache Folge-Implementierung
+                    const pos = playerEntity.position;
+                    moveToPosition(pos);
+                }
+                
+                // Gelegentlich zum Spieler schauen
+                bot.lookAt(playerEntity.position.offset(0, playerEntity.height, 0));
+                
+                // Manchmal dem Spieler zuwinken
+                if (Math.random() < 0.3) {
+                    bot.swingArm();
+                    if (Math.random() < 0.2) {
+                        // Springe manchmal, um Aufmerksamkeit zu erregen
+                        bot.setControlState('jump', true);
+                        setTimeout(() => bot.setControlState('jump', false), 250);
+                    }
+                }
+            } else {
+                // Kein Spieler in der Nähe, zurück zur Erkundung
+                botMode = "reconnaissance";
+            }
+        },
+        
+        // Bleibt an einem Ort und schaut sich um
+        observeSurroundings: () => {
+            addBotLog(bot.username, "KI-Modus: Umgebungsbeobachtung", "info");
+            
+            // Alle Bewegungen stoppen
+            stopMovement();
+            
+            // In zufällige Richtungen schauen
+            let lookingInterval = setInterval(() => {
+                if (!bot.entity) {
+                    clearInterval(lookingInterval);
+                    return;
+                }
+                bot.look(Math.random() * Math.PI * 2, Math.random() * Math.PI - Math.PI / 2);
+            }, 2000);
+            
+            // Nach einer Weile aufhören zu schauen
+            setTimeout(() => {
+                clearInterval(lookingInterval);
+                // Zurück zur Erkundung
+                botMode = "reconnaissance";
+            }, 10000 + Math.random() * 5000);
+        }
+    };
+    
+    // Hilfsfunktionen für die KI-Bewegung
+    function simpleMove(angle, distance) {
+        isMoving = true;
+        // Drehe in die gewünschte Richtung
+        bot.look(angle, 0);
+        
+        // Beginne vorwärts zu gehen
+        bot.setControlState('forward', true);
+        
+        // Stoppe nach zufälliger Zeit
+        const moveTime = Math.min(distance * 300, 5000); // Maximal 5 Sekunden Bewegung
+        setTimeout(() => {
+            bot.setControlState('forward', false);
+            isMoving = false;
+        }, moveTime);
+    }
+    
+    function moveToPosition(position) {
+        const dx = position.x - bot.entity.position.x;
+        const dz = position.z - bot.entity.position.z;
+        const yaw = Math.atan2(-dx, -dz);
+        
+        bot.look(yaw, 0);
+        bot.setControlState('forward', true);
+        isMoving = true;
+        
+        // Überprüfe, ob Sprung nötig ist (für kleine Hindernisse)
+        setTimeout(() => {
+            const blockAhead = bot.blockAt(bot.entity.position.offset(
+                Math.sin(-yaw), 0, Math.cos(-yaw)
+            ));
+            
+            if (blockAhead && blockAhead.boundingBox === 'block') {
+                bot.setControlState('jump', true);
+                setTimeout(() => bot.setControlState('jump', false), 250);
+            }
+        }, 500);
+    }
+    
+    function stopMovement() {
+        bot.setControlState('forward', false);
+        bot.setControlState('back', false);
+        bot.setControlState('left', false);
+        bot.setControlState('right', false);
+        bot.setControlState('jump', false);
+        isMoving = false;
+    }
+    
+    function scanSurroundings() {
+        // Suche nach interessanten Blöcken in der Umgebung
+        try {
+            const scanRadius = 15;
+            const startPosition = bot.entity.position.clone();
+            
+            // Liste interessanter Block-IDs (Beispiele)
+            const interestingBlocks = [
+                'chest', 'crafting_table', 'furnace', 'diamond_ore', 'gold_ore',
+                'iron_ore', 'bookshelf', 'enchanting_table', 'nether_portal'
             ];
             
-            const randomAction = actions[Math.floor(Math.random() * actions.length)];
-            randomAction();
+            // Vereinfachte Scan-Implementierung (in einer echten Implementierung würde man den Bot-Block-Scanner verwenden)
+            const foundInterestingBlock = Math.random() < 0.3; // Simulierte Entdeckung
             
-            // Timer zurücksetzen
-            lastAction = currentTime;
+            if (foundInterestingBlock) {
+                // Simuliere einen interessanten Fund
+                const distance = Math.random() * scanRadius;
+                const angle = Math.random() * Math.PI * 2;
+                const interestPos = startPosition.offset(
+                    Math.cos(angle) * distance,
+                    (Math.random() - 0.5) * 5, // Höhenunterschied
+                    Math.sin(angle) * distance
+                );
+                
+                // Speichere den interessanten Ort
+                interestPoints.push(interestPos);
+                
+                // Speichere im KI-Gedächtnis
+                aiMemory.interestingLocations.push({
+                    position: interestPos,
+                    type: interestingBlocks[Math.floor(Math.random() * interestingBlocks.length)],
+                    foundAt: Date.now()
+                });
+                
+                addBotLog(bot.username, `Interessanten Ort entdeckt bei ${interestPos.x.toFixed(1)}, ${interestPos.y.toFixed(1)}, ${interestPos.z.toFixed(1)}`, "success");
+            }
+        } catch (e) {
+            // Fehlerbehandlung
+            console.error("Fehler beim Scannen der Umgebung:", e);
+        }
+    }
+    
+    function getNearestPlayer() {
+        // Finde den nächsten Spieler (nicht selbst)
+        const players = Object.values(bot.players)
+            .filter(player => player.entity && player.username !== bot.username);
+        
+        if (players.length === 0) return null;
+        
+        // Sortiere nach Distanz
+        players.sort((a, b) => {
+            return bot.entity.position.distanceTo(a.entity.position) - 
+                   bot.entity.position.distanceTo(b.entity.position);
+        });
+        
+        // Wähle den nächsten Spieler (oder zufällig einen der drei nächsten Spieler)
+        const nearbyPlayers = players.slice(0, Math.min(3, players.length));
+        return nearbyPlayers[Math.floor(Math.random() * nearbyPlayers.length)].entity;
+    }
+    
+    // KI-Verhaltenssystem
+    const aiDecisionInterval = setInterval(() => {
+        if (!bot.entity) {
+            clearInterval(aiDecisionInterval);
+            return;
         }
         
-        // Sicherstellen, dass der Bot aufhört zu springen
-        if (bot.getControlState('jump')) {
-            setTimeout(() => bot.setControlState('jump', false), 200);
+        // Sicherheitscheck
+        const currentTime = Date.now();
+        
+        try {
+            // Entscheide über nächste Aktion basierend auf aktuellem Zustand
+            if (isMoving) return; // Warte, bis die aktuelle Bewegung beendet ist
+            
+            // Wechsle Verhalten basierend auf Umgebung und Zustand
+            if (botMode === "reconnaissance") {
+                // 70% Chance zur Erkundung, 20% für Beobachtung, 10% für Spielersuche
+                const decision = Math.random();
+                if (decision < 0.7) {
+                    aiMovementPatterns.explore();
+                } else if (decision < 0.9) {
+                    aiMovementPatterns.observeSurroundings();
+                } else {
+                    aiMovementPatterns.followNearbyPlayer();
+                }
+                
+                // Gelegentlich zu Patrouille wechseln
+                if (interestPoints.length >= 2 && Math.random() < 0.25) {
+                    botMode = "patrolling";
+                }
+            } else if (botMode === "patrolling") {
+                aiMovementPatterns.patrol();
+                
+                // Manchmal zurück zu Erkundung
+                if (Math.random() < 0.1) {
+                    botMode = "reconnaissance";
+                }
+            } else if (botMode === "following") {
+                aiMovementPatterns.followNearbyPlayer();
+                
+                // Höhere Chance, zum normalen Verhalten zurückzukehren
+                if (Math.random() < 0.3) {
+                    botMode = "reconnaissance";
+                }
+            }
+            
+            // Aktualisiere Zeitstempel der letzten Aktion
+            lastAction = currentTime;
+        } catch (e) {
+            console.error("Fehler im KI-Entscheidungssystem:", e);
+            // Setze auf einfaches Verhalten zurück bei Fehler
+            stopMovement();
+            botMode = "reconnaissance";
         }
-    }, 30 * 1000); // Alle 30 Sekunden prüfen
-    
-    // Wenn Bot endet, Interval löschen
-    bot.on('end', () => {
-        clearInterval(safetyInterval);
-    });
+    }, 8000); // Alle 8 Sekunden Entscheidung treffen
     
     // Ereignisse registrieren, die als Aktivität zählen
     const activityEvents = ['chat', 'move', 'health', 'spawn', 'respawn'];
@@ -486,6 +956,80 @@ function setupBotSafety(bot) {
         bot.on(event, () => {
             lastAction = Date.now();
         });
+    });
+    
+    // Reagieren auf Spieler-Chat
+    bot.on('chat', (username, message) => {
+        // Ignoriere eigene Nachrichten
+        if (username === bot.username) return;
+        
+        // Speichere Interaktion im Gedächtnis
+        if (!aiMemory.playerInteractions[username]) {
+            aiMemory.playerInteractions[username] = {
+                messages: [],
+                lastSeen: Date.now()
+            };
+        }
+        
+        aiMemory.playerInteractions[username].messages.push({
+            timestamp: Date.now(),
+            content: message
+        });
+        
+        // Einfache Reaktion auf bestimmte Schlüsselwörter
+        const lowerMsg = message.toLowerCase();
+        if (lowerMsg.includes('hallo') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
+            setTimeout(() => {
+                sendCommand(bot.username, `chat Hallo ${username}! Ich bin ein KI-gesteuerter Bot.`);
+            }, 1000 + Math.random() * 1000);
+        } else if (lowerMsg.includes('folge') || lowerMsg.includes('komm')) {
+            // Wechsle in den Folgemodus für diesen Spieler
+            const player = bot.players[username];
+            if (player && player.entity) {
+                botMode = "following";
+                addBotLog(bot.username, `Folge Spieler auf Befehl: ${username}`, "info");
+            }
+        } else if (lowerMsg.includes('stop') || lowerMsg.includes('halt') || lowerMsg.includes('bleib')) {
+            // Stoppe alle Bewegungen
+            stopMovement();
+            botMode = "reconnaissance";
+            addBotLog(bot.username, `Bewegung auf Befehl von ${username} gestoppt`, "info");
+        }
+    });
+    
+    // Dynamische Anpassung bei Schaden
+    bot.on('hurt', () => {
+        // Bei Schaden, versuche wegzulaufen
+        addBotLog(bot.username, "Schaden erhalten! Suche sicheren Bereich", "warning");
+        
+        // Vorübergehend Verhalten ändern
+        stopMovement();
+        
+        // Wenn zuletzt bekannte sichere Position vorhanden, dorthin zurückkehren
+        if (lastKnownSafePosition) {
+            if (bot.pathfinder) {
+                bot.pathfinder.setGoal(new bot.pathfinder.goals.GoalNear(
+                    lastKnownSafePosition.x, lastKnownSafePosition.y, lastKnownSafePosition.z, 2
+                ));
+            } else {
+                moveToPosition(lastKnownSafePosition);
+            }
+        } else {
+            // Sonst in zufällige Richtung fliehen
+            const angle = Math.random() * Math.PI * 2;
+            simpleMove(angle, 15); // Weiter weg bewegen
+        }
+        
+        // Füge aktuellen Ort als gefährlich hinzu
+        aiMemory.dangerousAreas.push({
+            position: bot.entity.position.clone(),
+            time: Date.now()
+        });
+    });
+    
+    // Wenn Bot endet, alle Intervalle löschen
+    bot.on('end', () => {
+        clearInterval(aiDecisionInterval);
     });
 }
 
