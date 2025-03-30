@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
+        /* Bot Mood Module Styles */
+        ${BotMood.generateCSS()}
+        
         .dashboard-container {
             display: grid;
             grid-template-columns: 250px 1fr;
@@ -1581,6 +1584,18 @@
                                 <div class="bot-status ${bot.status}"></div>
                                 <h4 class="bot-name">${bot.username}</h4>
                                 <p class="bot-server">${bot.server}</p>
+                                
+                                <!-- Bot-Stimmungs- und Leistungsindikatoren -->
+                                ${BotMood.generateStatusIndicators({
+                                    isOnline: bot.status === 'online',
+                                    connectionQuality: bot.connectionQuality || 95,
+                                    errorRate: bot.errorRate || 0,
+                                    performance: bot.performance || 90,
+                                    pingLatency: bot.pingLatency || 120,
+                                    activity: bot.activity || 'exploring',
+                                    health: bot.health || 100
+                                })}
+                                
                                 <div class="bot-details">
                                     <div class="bot-detail">
                                         Version: <span>${bot.version || '1.16.5'}</span>
@@ -1803,7 +1818,17 @@
                     
                     // Details anzeigen
                     detailsContent.innerHTML = `
-                        <div class="bot-details-grid">
+                        ${BotMood.generateDetailedStatusCard({
+                            isOnline: bot.status === 'online',
+                            connectionQuality: bot.connectionQuality || 95,
+                            errorRate: bot.errorRate || 0,
+                            performance: bot.performance || 90,
+                            pingLatency: bot.pingLatency || 120,
+                            activity: bot.activity || 'exploring',
+                            health: bot.health || 100
+                        })}
+                        
+                        <div class="bot-details-grid" style="margin-top: 15px;">
                             <div class="bot-detail-item">
                                 <strong>Name:</strong> ${bot.username}
                             </div>
