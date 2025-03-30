@@ -747,6 +747,29 @@
         <div class="header">
             <h1>Herobrine AFK Bot</h1>
             <div class="quick-links">
+                <!-- Benachrichtigungssymbol mit Badge für ungelesene Benachrichtigungen -->
+                <div class="notification-center">
+                    <div class="notification-icon" id="notification-icon" onclick="toggleNotifications()">
+                        <span class="material-icons">notifications</span>
+                        <span class="notification-badge" id="notification-badge">0</span>
+                    </div>
+                    
+                    <!-- Notification Dropdown -->
+                    <div class="notification-dropdown" id="notification-dropdown">
+                        <div class="notification-header">
+                            <h3>Benachrichtigungen</h3>
+                            <button class="mark-all-read" onclick="markAllNotificationsAsRead()">Alle gelesen</button>
+                        </div>
+                        <div class="notification-list" id="notification-list">
+                            <!-- Benachrichtigungen werden hier dynamisch geladen -->
+                            <div class="empty-notifications">Keine Benachrichtigungen vorhanden</div>
+                        </div>
+                        <div class="notification-footer">
+                            <a href="#" onclick="showAllNotifications()">Alle anzeigen</a>
+                        </div>
+                    </div>
+                </div>
+                
                 <a href="#" id="logout-link" onclick="logout()">Abmelden</a>
                 <a href="#">Hilfe</a>
             </div>
