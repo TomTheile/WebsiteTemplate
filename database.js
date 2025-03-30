@@ -8,7 +8,8 @@ const db = {
     users: [],
     bots: [],
     logs: [],
-    sessions: []
+    sessions: [],
+    notifications: [] // Für das Benachrichtigungssystem
 };
 
 /**
@@ -25,6 +26,177 @@ function readDatabase() {
     } catch (error) {
         console.error('Fehler beim Lesen der Datenbank:', error);
     }
+}
+
+/**
+ * Überprüft, ob ein Benutzer Admin-Rechte hat
+ * @param {string} userId - Die ID des Benutzers
+ * @returns {boolean} - True wenn der Benutzer Admin ist, sonst False
+ */
+function isUserAdmin(userId) {
+    readDatabase(); // Datenbank laden
+    
+    // Benutzer in der Datenbank suchen
+    const user = db.users.find(u => u.id === userId);
+    
+    // Prüfen, ob der Benutzer existiert und die Rolle "admin" hat
+    return user ? user.role === 'admin' : false;
+}
+
+/**
+ * Erstellt eine neue Benachrichtigung für einen Benutzer
+ * 
+ * @param {string} userId - ID des Benutzers, für den die Benachrichtigung erstellt wird
+ * @param {string} message - Die anzuzeigende Nachricht
+ * @param {string} type - Der Typ der Benachrichtigung ('info', 'success', 'warning', 'error')
+ * @param {Object} options - Zusätzliche Optionen für die Benachrichtigung
+ * @returns {string} - Die ID der erstellten Benachrichtigung
+ */
+function createNotification(userId, message, type = 'info', options = {}) {
+    readDatabase();
+    
+    // Sicherstellen, dass der Benachrichtigungsarray existiert
+    if (!db.notifications) {
+        db.notifications = [];
+    }
+    
+    // Neue Benachrichtigung erstellen
+    const notificationId = 'notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    
+    const notification = {
+        id: notificationId,
+        userId: userId,
+        message: message,
+        type: type,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        link: options.link || null,
+        actionText: options.actionText || null,
+        icon: options.icon || null,
+        expiresAt: options.expiresAt || null
+    };
+    
+    // Benachrichtigung zur Datenbank hinzufügen
+    db.notifications.push(notification);
+    writeDatabase();
+    
+    // Benachrichtigung zurückgeben
+    return notificationId;
+}
+
+/**
+ * Holt alle Benachrichtigungen für einen bestimmten Benutzer
+ * 
+ * @param {string} userId - ID des Benutzers
+ * @param {Object} options - Filteroptionen wie 'onlyUnread', 'limit', etc.
+ * @returns {Array} - Liste der Benachrichtigungen
+ */
+function getNotifications(userId, options = {}) {
+    readDatabase();
+    
+    // Sicherstellen, dass der Benachrichtigungsarray existiert
+    if (!db.notifications) {
+        db.notifications = [];
+        return [];
+    }
+    
+    // Alle Benachrichtigungen des Benutzers filtern
+    let notifications = db.notifications.filter(n => n.userId === userId);
+    
+    // Nach ungelesenen Benachrichtigungen filtern, wenn gewünscht
+    if (options.onlyUnread) {
+        notifications = notifications.filter(n => !n.isRead);
+    }
+    
+    // Nach abgelaufenen Benachrichtigungen filtern
+    const now = new Date();
+    notifications = notifications.filter(n => {
+        if (!n.expiresAt) return true;
+        const expiryDate = new Date(n.expiresAt);
+        return expiryDate > now;
+    });
+    
+    // Nach Erstellungsdatum sortieren (neueste zuerst)
+    notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    // Limitieren, falls gewünscht
+    if (options.limit && notifications.length > options.limit) {
+        notifications = notifications.slice(0, options.limit);
+    }
+    
+    return notifications;
+}
+
+/**
+ * Markiert eine Benachrichtigung als gelesen
+ * 
+ * @param {string} notificationId - ID der Benachrichtigung
+ * @returns {boolean} - True wenn erfolgreich, sonst False
+ */
+function markNotificationAsRead(notificationId) {
+    readDatabase();
+    
+    // Benachrichtigung in der Datenbank suchen
+    const notification = db.notifications.find(n => n.id === notificationId);
+    
+    if (!notification) {
+        return false;
+    }
+    
+    // Als gelesen markieren
+    notification.isRead = true;
+    writeDatabase();
+    
+    return true;
+}
+
+/**
+ * Löscht eine Benachrichtigung
+ * 
+ * @param {string} notificationId - ID der zu löschenden Benachrichtigung
+ * @returns {boolean} - True wenn erfolgreich, sonst False
+ */
+function deleteNotification(notificationId) {
+    readDatabase();
+    
+    // Index der Benachrichtigung finden
+    const index = db.notifications.findIndex(n => n.id === notificationId);
+    
+    if (index === -1) {
+        return false;
+    }
+    
+    // Benachrichtigung entfernen
+    db.notifications.splice(index, 1);
+    writeDatabase();
+    
+    return true;
+}
+
+/**
+ * Markiert alle Benachrichtigungen eines Benutzers als gelesen
+ * 
+ * @param {string} userId - ID des Benutzers
+ * @returns {number} - Anzahl der aktualisierten Benachrichtigungen
+ */
+function markAllNotificationsAsRead(userId) {
+    readDatabase();
+    
+    let count = 0;
+    
+    // Alle Benachrichtigungen des Benutzers durchlaufen
+    db.notifications.forEach(notification => {
+        if (notification.userId === userId && !notification.isRead) {
+            notification.isRead = true;
+            count++;
+        }
+    });
+    
+    if (count > 0) {
+        writeDatabase();
+    }
+    
+    return count;
 }
 
 /**
@@ -583,5 +755,135 @@ export {
     createBot,
     stopBot,
     addBotLog,
-    getBotLogs
+    getBotLogs,
+    createNotification,
+    getNotifications,
+    markNotificationAsRead,
+    deleteNotification,
+    markAllNotificationsAsRead
 };
+
+/**
+ * Erstellt eine neue Benachrichtigung für einen Benutzer
+ * 
+ * @param {string} userId - ID des Benutzers, für den die Benachrichtigung erstellt wird
+ * @param {string} message - Die anzuzeigende Nachricht
+ * @param {string} type - Der Typ der Benachrichtigung ('info', 'success', 'warning', 'error')
+ * @param {Object} options - Zusätzliche Optionen für die Benachrichtigung
+ * @returns {string} - Die ID der erstellten Benachrichtigung
+ */
+function createNotification(userId, message, type = 'info', options = {}) {
+    readDatabase();
+    
+    const id = generateId();
+    const notification = {
+        id,
+        userId,
+        message,
+        type,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        link: options.link || '',
+        actionText: options.actionText || '',
+        source: options.source || 'System'
+    };
+    
+    db.notifications.push(notification);
+    writeDatabase();
+    
+    return id;
+}
+
+/**
+ * Holt alle Benachrichtigungen für einen bestimmten Benutzer
+ * 
+ * @param {string} userId - ID des Benutzers
+ * @param {Object} options - Filteroptionen wie 'onlyUnread', 'limit', etc.
+ * @returns {Array} - Liste der Benachrichtigungen
+ */
+function getNotifications(userId, options = {}) {
+    readDatabase();
+    
+    // Filter für Benutzer
+    let notifications = db.notifications.filter(n => n.userId === userId);
+    
+    // Filter für ungelesene Benachrichtigungen
+    if (options.onlyUnread) {
+        notifications = notifications.filter(n => !n.isRead);
+    }
+    
+    // Filter für Benachrichtigungstyp
+    if (options.type) {
+        notifications = notifications.filter(n => n.type === options.type);
+    }
+    
+    // Nach Datum sortieren (neueste zuerst)
+    notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    // Limit für die Anzahl der zurückgegebenen Benachrichtigungen
+    if (options.limit && typeof options.limit === 'number') {
+        notifications = notifications.slice(0, options.limit);
+    }
+    
+    return notifications;
+}
+
+/**
+ * Markiert eine Benachrichtigung als gelesen
+ * 
+ * @param {string} notificationId - ID der Benachrichtigung
+ * @returns {boolean} - True wenn erfolgreich, sonst False
+ */
+function markNotificationAsRead(notificationId) {
+    readDatabase();
+    
+    const notification = db.notifications.find(n => n.id === notificationId);
+    if (!notification) return false;
+    
+    notification.isRead = true;
+    writeDatabase();
+    
+    return true;
+}
+
+/**
+ * Löscht eine Benachrichtigung
+ * 
+ * @param {string} notificationId - ID der zu löschenden Benachrichtigung
+ * @returns {boolean} - True wenn erfolgreich, sonst False
+ */
+function deleteNotification(notificationId) {
+    readDatabase();
+    
+    const index = db.notifications.findIndex(n => n.id === notificationId);
+    if (index === -1) return false;
+    
+    db.notifications.splice(index, 1);
+    writeDatabase();
+    
+    return true;
+}
+
+/**
+ * Markiert alle Benachrichtigungen eines Benutzers als gelesen
+ * 
+ * @param {string} userId - ID des Benutzers
+ * @returns {number} - Anzahl der aktualisierten Benachrichtigungen
+ */
+function markAllNotificationsAsRead(userId) {
+    readDatabase();
+    
+    let count = 0;
+    db.notifications.forEach(notification => {
+        if (notification.userId === userId && !notification.isRead) {
+            notification.isRead = true;
+            count++;
+        }
+    });
+    
+    if (count > 0) {
+        writeDatabase();
+    }
+    
+    return count;
+}

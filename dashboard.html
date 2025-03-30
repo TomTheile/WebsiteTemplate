@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Herobrine AFK Bot</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         .dashboard-container {
             display: grid;
@@ -1037,6 +1038,49 @@
             document.getElementById('notify-errors').checked = localStorage.getItem('notify_errors') === 'true';
             document.getElementById('notify-updates').checked = localStorage.getItem('notify_updates') === 'true';
             
+            // Beispiel-Benachrichtigungen erstellen (für Demo-Zwecke)
+            const userId = localStorage.getItem('user_id');
+            if (userId) {
+                // Prüfen ob bereits Benachrichtigungen existieren
+                const existingNotifications = getNotifications(userId);
+                
+                // Nur Beispiel-Benachrichtigungen erstellen, wenn noch keine vorhanden sind
+                if (existingNotifications.length === 0) {
+                    createNotification(userId, 'Willkommen bei Herobrine AFK Bot!', 'info', {
+                        source: 'System',
+                        createdAt: new Date(Date.now() - 3600000 * 2).toISOString() // 2 Stunden zurück
+                    });
+                    
+                    createNotification(userId, 'Bot erfolgreich gestartet', 'success', {
+                        source: 'Bot-Manager',
+                        link: '#bot-status',
+                        actionText: 'Status prüfen',
+                        createdAt: new Date(Date.now() - 3600000).toISOString() // 1 Stunde zurück
+                    });
+                    
+                    createNotification(userId, 'Bot wurde vom Server getrennt', 'warning', {
+                        source: 'Bot-Manager',
+                        link: '#reconnect',
+                        actionText: 'Neu verbinden',
+                        createdAt: new Date(Date.now() - 600000).toISOString() // 10 Minuten zurück
+                    });
+                    
+                    if (localStorage.getItem('user_role') === 'admin') {
+                        createNotification(userId, 'Neuer Nutzer registriert: user123', 'info', {
+                            source: 'Admin-System',
+                            link: '#admin-panel',
+                            actionText: 'Admin-Panel öffnen',
+                            createdAt: new Date(Date.now() - 300000).toISOString() // 5 Minuten zurück
+                        });
+                    }
+                    
+                    // Toast-Benachrichtigung anzeigen
+                    setTimeout(() => {
+                        showToast('Neue Benachrichtigungen verfügbar', 'info', 5000);
+                    }, 2000);
+                }
+            }
+            
             // Benutzername in Einstellungen eintragen
             document.getElementById('user-username').value = localStorage.getItem('username') || '';
             document.getElementById('user-email').value = localStorage.getItem('email') || '';
@@ -1540,8 +1584,26 @@
                 if (data.success) {
                     refreshDashboard();
                     showToast('Bot wurde erfolgreich gestoppt!', 'success');
+                    
+                    // Benachrichtigung erstellen
+                    const userId = localStorage.getItem('user_id');
+                    if (userId) {
+                        createNotification(userId, `Bot wurde manuell gestoppt (ID: ${botId})`, 'info', {
+                            source: 'Bot-Manager',
+                            actionText: 'Details anzeigen',
+                            link: '#bot-status'
+                        });
+                    }
                 } else {
                     showToast(data.error || 'Fehler beim Stoppen des Bots', 'error');
+                    
+                    // Fehler-Benachrichtigung erstellen
+                    const userId = localStorage.getItem('user_id');
+                    if (userId) {
+                        createNotification(userId, `Fehler beim Stoppen des Bots: ${data.error || 'Unbekannter Fehler'}`, 'error', {
+                            source: 'Bot-Manager'
+                        });
+                    }
                 }
             })
             .catch(error => {
@@ -1660,6 +1722,16 @@
             document.getElementById('confirm-password').value = '';
             
             showToast('Passwort wurde erfolgreich geändert!', 'success');
+            
+            // Benachrichtigung zur Passwortänderung erstellen
+            const userId = localStorage.getItem('user_id');
+            if (userId) {
+                createNotification(userId, 'Dein Passwort wurde erfolgreich geändert', 'success', {
+                    source: 'Sicherheit',
+                    actionText: 'Einstellungen öffnen',
+                    link: '#settings'
+                });
+            }
         }
         
         /**
@@ -1692,6 +1764,16 @@
             if (notifyUpdates) {
                 setTimeout(() => {
                     showToast('Benachrichtigungen sind jetzt aktiv!', 'info');
+                    
+                    // Test-Benachrichtigung im Notification Center erstellen
+                    const userId = localStorage.getItem('user_id');
+                    if (userId) {
+                        createNotification(userId, 'Benachrichtigungseinstellungen wurden aktualisiert', 'success', {
+                            source: 'Einstellungen',
+                            actionText: 'Zu den Einstellungen',
+                            link: '#settings'
+                        });
+                    }
                 }, 1000);
             }
         }
