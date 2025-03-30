@@ -1038,3 +1038,74 @@ window.addEventListener('DOMContentLoaded', () => {
     addConsoleMessage("System > Dashboard wurde geladen");
     addConsoleMessage("System > Bitte gib eine Minecraft Server IP ein und drücke 'Bot starten'");
 });
+
+// Create Bot Button Event Listener
+document.getElementById('create-bot-btn').addEventListener('click', function() {
+    const createBotForm = document.getElementById('create-bot-form');
+    if (createBotForm) {
+        createBotForm.style.display = 'block';
+
+        // Reset form fields with default values
+        const username = localStorage.getItem('username') || '';
+        document.getElementById('bot-username').value = `${username}_Bot`;
+        document.getElementById('bot-server').value = '';
+        document.getElementById('bot-port').value = '25565';
+        document.getElementById('bot-version').value = '1.20.4';
+
+        // Show form with animation
+        createBotForm.style.opacity = '0';
+        setTimeout(() => {
+            createBotForm.style.opacity = '1';
+        }, 50);
+    } else {
+        console.error('Create bot form not found');
+        showToast('Fehler beim Öffnen des Bot-Erstellungsformulars', 'error');
+    }
+});
+
+// Submit Create Bot Form
+document.getElementById('submit-create-bot').addEventListener('click', function() {
+    const username = document.getElementById('bot-username').value;
+    const server = document.getElementById('bot-server').value;
+    const port = document.getElementById('bot-port').value;
+    const version = document.getElementById('bot-version').value;
+
+    if (!username || !server) {
+        showToast('Bitte fülle alle erforderlichen Felder aus', 'error');
+        return;
+    }
+
+    // Start the bot
+    startBot({
+        username: username,
+        serverIp: server,
+        mcVersion: version,
+        port: port
+    }).then(response => {
+        if (response.success) {
+            showToast('Bot wurde erfolgreich erstellt!', 'success');
+            document.getElementById('create-bot-form').style.display = 'none';
+        } else {
+            showToast(response.error || 'Fehler beim Erstellen des Bots', 'error');
+        }
+    }).catch(error => {
+        showToast('Fehler beim Erstellen des Bots: ' + error.message, 'error');
+    });
+});
+
+// Helper function to display notifications
+function showToast(message, type = 'info') {
+    //Implementation for showing toast message.  This is a placeholder.  Replace with your actual toast implementation.
+    console.log(`Toast: ${message} (${type})`);
+    alert(message);
+}
+
+// Placeholder for startBot function.  Replace with your actual implementation.
+async function startBot(options) {
+    // Simulate a delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Replace this with your actual API call
+    const response = {success: true};
+    return response;
+
+}
