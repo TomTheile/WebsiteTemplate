@@ -2,9 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:  # Ermöglicht manuelles Auslösen des Workflows
 
 permissions:
@@ -23,16 +23,27 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v3
-        
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18  # Stelle sicher, dass die richtige Node.js-Version verwendet wird
+
+      - name: Install Dependencies
+        run: npm install  # Falls du Yarn oder PNPM nutzt, ersetze diesen Befehl
+
+      - name: Build Project
+        run: npm run build  # Falls dein Build-Ordner anders heißt, passe es an
+      
       - name: Setup Pages
         uses: actions/configure-pages@v3
-        
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: './build'  # Falls der Output-Ordner anders ist, passe dies an
           
       - name: Deploy to GitHub Pages
         id: deployment
