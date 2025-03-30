@@ -29,23 +29,23 @@ function startBot(config) {
             if (!config.username || !config.server) {
                 return reject(new Error('Benutzername und Server sind erforderlich'));
             }
-            
+
             // Eindeutige Bot-ID erstellen
             const botId = `${config.username}_${Date.now()}`;
-            
-            // Standardwerte setzen
-            const port = config.port || 25565;
+
+            // Automatisch Port generieren und Standardwerte setzen
+            const port = 25565; // Standard Minecraft Port
             const version = config.version || '1.20.4';
             const autoReconnect = config.autoReconnect !== false;
             const antiAFK = config.antiAFK !== false;
             const chatCommands = config.chatCommands || [];
-            
+
             // Log-Array initialisieren
             botLogs[botId] = [];
-            
+
             // Bot-Log hinzufügen
             addBotLog(botId, `Bot wird gestartet... (Server: ${config.server}:${port}, Version: ${version})`, 'info');
-            
+
             // In einer echten Anwendung würde hier der mineflayer-Bot erstellt werden
             // Für diese Simulation erstellen wir ein einfaches Objekt
             const bot = {
@@ -63,57 +63,57 @@ function startBot(config) {
                     chatCommands
                 }
             };
-            
+
             // Bot zum aktiveBots-Objekt hinzufügen
             activeBots[botId] = bot;
-            
+
             // Simuliere eine verzögerte Verbindung
             setTimeout(() => {
                 // 10% Chance auf Verbindungsfehler
                 const connectionFailed = Math.random() < 0.1;
-                
+
                 if (connectionFailed) {
                     bot.status = 'connection_failed';
                     addBotLog(botId, `Verbindung zum Server fehlgeschlagen: ${config.server}:${port}`, 'error');
-                    
+
                     if (autoReconnect) {
                         addBotLog(botId, 'Versuche erneut zu verbinden in 30 Sekunden...', 'info');
-                        
+
                         // In einer echten Anwendung würde hier ein Reconnect-Timeout gesetzt werden
                     }
                 } else {
                     bot.status = 'online';
                     addBotLog(botId, `Erfolgreich verbunden mit ${config.server}:${port}`, 'success');
-                    
+
                     // Bot-Sicherheitseinstellungen
                     setupBotSafety(bot);
-                    
+
                     // Simuliere Chat-Befehle
                     if (chatCommands && chatCommands.length > 0) {
                         addBotLog(botId, `Führe ${chatCommands.length} Chat-Befehle aus...`, 'info');
-                        
+
                         chatCommands.forEach((command, index) => {
                             setTimeout(() => {
                                 addBotLog(botId, `Chat-Befehl ausgeführt: ${command}`, 'command');
                             }, 1000 * (index + 1));
                         });
                     }
-                    
+
                     // Anti-AFK-Maßnahmen aktivieren
                     if (antiAFK) {
                         addBotLog(botId, 'Anti-AFK-Maßnahmen aktiviert', 'info');
-                        
+
                         // Simuliere periodische Bewegungen (In einer echten Anwendung würde hier ein Intervall gesetzt werden)
                         bot.antiAFKInterval = setInterval(() => {
                             const actions = ['jump', 'sneak', 'look', 'move'];
                             const randomAction = actions[Math.floor(Math.random() * actions.length)];
-                            
+
                             addBotLog(botId, `Anti-AFK-Aktion: ${randomAction}`, 'debug');
                             bot.lastActive = Date.now();
                         }, 5 * 60 * 1000); // Alle 5 Minuten
                     }
                 }
-                
+
                 // Ergebnis zurückgeben
                 resolve({
                     id: botId,
@@ -123,7 +123,7 @@ function startBot(config) {
                     port: bot.port
                 });
             }, 2000); // 2 Sekunden Verzögerung für die Simulation
-            
+
         } catch (error) {
             console.error('Fehler beim Starten des Bots:', error);
             reject(error);
@@ -138,13 +138,13 @@ function startBot(config) {
  */
 function setupBotSafety(bot) {
     addBotLog(bot.id, 'Sicherheitseinstellungen werden konfiguriert...', 'info');
-    
+
     // In einer echten Anwendung würden hier Event-Listener für wichtige Ereignisse gesetzt werden
     // Zum Beispiel:
     // - Erkennung von Kicken/Bannen
     // - Erkennung von potenziellen Gefahren
     // - Überwachung des Chat auf verdächtige Muster
-    
+
     addBotLog(bot.id, 'Sicherheitseinstellungen aktiviert', 'success');
 }
 
@@ -169,29 +169,29 @@ if (typeof window !== 'undefined') {
 function stopBot(botId) {
     return new Promise((resolve) => {
         const bot = activeBots[botId];
-        
+
         if (!bot) {
             return resolve(false);
         }
-        
+
         addBotLog(botId, 'Bot wird gestoppt...', 'info');
-        
+
         // Aufräumen
         if (bot.antiAFKInterval) {
             clearInterval(bot.antiAFKInterval);
         }
-        
+
         // In einer echten Anwendung würde hier der Bot disconnected werden
-        
+
         // Status aktualisieren
         bot.status = 'offline';
         bot.stopTime = Date.now();
-        
+
         // Aus dem aktiven Bots-Objekt entfernen
         delete activeBots[botId];
-        
+
         addBotLog(botId, 'Bot erfolgreich gestoppt', 'success');
-        
+
         resolve(true);
     });
 }
@@ -206,17 +206,17 @@ function stopBot(botId) {
 function sendCommand(botId, command) {
     return new Promise((resolve) => {
         const bot = activeBots[botId];
-        
+
         if (!bot || bot.status !== 'online') {
             return resolve(false);
         }
-        
+
         addBotLog(botId, `Befehl wird ausgeführt: ${command}`, 'command');
-        
+
         // In einer echten Anwendung würde hier der Befehl an den Bot gesendet werden
-        
+
         bot.lastActive = Date.now();
-        
+
         resolve(true);
     });
 }
@@ -229,14 +229,14 @@ function sendCommand(botId, command) {
  */
 function getBotStatus(botId) {
     const bot = activeBots[botId];
-    
+
     if (!bot) {
         return null;
     }
-    
+
     // Berechne die Laufzeit in Sekunden
     const uptime = Math.floor((Date.now() - bot.startTime) / 1000);
-    
+
     return {
         id: bot.id,
         username: bot.username,
@@ -260,22 +260,22 @@ function addBotLog(botId, message, type = 'info') {
     if (!botLogs[botId]) {
         botLogs[botId] = [];
     }
-    
+
     // Log-Eintrag erstellen
     const logEntry = {
         timestamp: new Date().toISOString(),
         type: type,
         message: message
     };
-    
+
     // Zum Array hinzufügen
     botLogs[botId].push(logEntry);
-    
+
     // Array auf maximal 1000 Einträge begrenzen (behält die neuesten Einträge)
     if (botLogs[botId].length > 1000) {
         botLogs[botId] = botLogs[botId].slice(botLogs[botId].length - 1000);
     }
-    
+
     // Log ausgeben (nur für Debugging-Zwecke)
     console.log(`[Bot ${botId}] [${type.toUpperCase()}] ${message}`);
 }
@@ -292,12 +292,12 @@ function getBotLogs(botId, limit = 100, type = null) {
     if (!botLogs[botId]) {
         return [];
     }
-    
+
     // Logs nach Typ filtern, falls angegeben
     let filteredLogs = type
         ? botLogs[botId].filter(log => log.type === type)
         : botLogs[botId];
-    
+
     // Die neuesten Logs zurückgeben (begrenzt durch limit)
     return filteredLogs.slice(-limit);
 }
@@ -311,29 +311,29 @@ function getBotLogs(botId, limit = 100, type = null) {
  */
 function setupBotEventLogging(bot, botId) {
     // Hier würden in einer echten Anwendung Event-Listener eingerichtet werden, z.B.:
-    
+
     /*
     bot.on('login', () => {
         addBotLog(botId, 'Bot hat sich eingeloggt', 'success');
     });
-    
+
     bot.on('end', () => {
         addBotLog(botId, 'Verbindung zum Server getrennt', 'warning');
     });
-    
+
     bot.on('chat', (username, message) => {
         addBotLog(botId, `Chat: <${username}> ${message}`, 'chat');
     });
-    
+
     bot.on('kicked', (reason) => {
         addBotLog(botId, `Bot wurde gekickt: ${reason}`, 'error');
     });
-    
+
     bot.on('death', () => {
         addBotLog(botId, 'Bot ist gestorben', 'warning');
     });
     */
-    
+
     addBotLog(botId, 'Event-Logging wurde eingerichtet', 'debug');
 }
 

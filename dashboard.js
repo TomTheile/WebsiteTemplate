@@ -1045,11 +1045,14 @@ document.getElementById('create-bot-btn').addEventListener('click', function() {
     if (createBotForm) {
         createBotForm.style.display = 'block';
 
-        // Reset form fields with default values
-        const username = localStorage.getItem('username') || '';
-        document.getElementById('bot-username').value = `${username}_Bot`;
+        // Generate random bot name
+        const botNames = ['Herobrine', 'Notch', 'Steve', 'Alex', 'Creeper', 'Enderman', 'Zombie', 'Skeleton'];
+        const randomName = botNames[Math.floor(Math.random() * botNames.length)];
+        const randomNumber = Math.floor(Math.random() * 1000);
+        
+        // Reset form fields with random values
+        document.getElementById('bot-username').value = `${randomName}_${randomNumber}`;
         document.getElementById('bot-server').value = '';
-        document.getElementById('bot-port').value = '25565';
         document.getElementById('bot-version').value = '1.20.4';
 
         // Show form with animation
