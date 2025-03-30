@@ -12,7 +12,7 @@
     "aes-js": "^3.1.2",
     "agent-base": "^6.0.2",
     "ajv": "^6.12.6",
-    "ansi-regex": "^5.0.1",
+    "ansi-regex": "^6.1.0",
     "aproba": "^2.0.0",
     "are-we-there-yet": "^2.0.0",
     "array-flatten": "^1.1.1",
