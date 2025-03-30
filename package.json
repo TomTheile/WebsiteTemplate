@@ -216,7 +216,7 @@
     "wrappy": "^1.0.2",
     "xtend": "^4.0.2",
     "xxhash-wasm": "^0.4.2",
-    "yallist": "^4.0.0",
+    "yallist": "^5.0.0",
     "yggdrasil": "^1.7.0"
   },
   "scripts": {
