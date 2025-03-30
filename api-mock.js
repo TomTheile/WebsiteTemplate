@@ -17,7 +17,7 @@ const APIMock = (function() {
             password: 'admin123', // Nur für Demo-Zwecke, in Produktionsumgebung niemals Passwörter im Code speichern!
             role: 'admin',
             isPremium: true,
-            maxBots: 999,
+            maxBots: 5,
             createdAt: '2023-01-01'
         },
         {
@@ -27,7 +27,7 @@ const APIMock = (function() {
             password: 'test123', // Nur für Demo-Zwecke
             role: 'user',
             isPremium: false,
-            maxBots: 1,
+            maxBots: 1, // Kostenloser Benutzer hat 1 Bot
             createdAt: '2023-01-15'
         }
     ];
@@ -270,8 +270,17 @@ const APIMock = (function() {
         if (!user.isPremium && userBots.length >= user.maxBots) {
             return {
                 success: false,
-                error: 'Du hast das Maximum an erlaubten Bots erreicht. Upgrade auf Premium für unbegrenzte Bots.',
+                error: 'Du hast das Maximum an erlaubten Bots erreicht. Upgrade auf Premium für mehr Bots.',
                 canUpgrade: true
+            };
+        }
+        
+        // Bei Premium-Nutzern überprüfen wir trotzdem ein höheres Limit
+        if (user.isPremium && userBots.length >= 5) {
+            return {
+                success: false,
+                error: 'Du hast das Maximum an Premium-Bots erreicht (5).',
+                canUpgrade: false
             };
         }
         
@@ -459,13 +468,13 @@ const APIMock = (function() {
         
         // Benutzer auf Premium aktualisieren
         user.isPremium = true;
-        user.maxBots = 999;
+        user.maxBots = 5; // Premium-Nutzer können bis zu 5 Bots erstellen
         
         return {
             success: true,
-            message: 'Dein Konto wurde erfolgreich auf Premium aktualisiert. Du kannst jetzt unbegrenzt Bots erstellen.',
+            message: 'Dein Konto wurde erfolgreich auf Premium aktualisiert. Du kannst jetzt bis zu 5 Bots erstellen.',
             isPremium: true,
-            maxBots: 999
+            maxBots: 5
         };
     }
 
