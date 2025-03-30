@@ -2,7 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:  # Ermöglicht manuelles Auslösen des Workflows
 
 permissions:
@@ -15,33 +17,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      
-      - name: Build Static Site
-        run: |
-          # Hier könnten Build-Schritte stehen, wenn nötig
-          # Für statische Seiten ist meist kein Build nötig
-          echo "Preparing site for deployment"
-      
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
   deploy:
-    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18  # Stelle sicher, dass die richtige Node.js-Version verwendet wird
+
+      - name: Install Dependencies
+        run: npm install  # Falls du Yarn oder PNPM nutzt, ersetze diesen Befehl
+
+      - name: Build Project
+        run: npm run build  # Falls dein Build-Ordner anders heißt, passe es an
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './build'  # Falls der Output-Ordner anders ist, passe dies an
+
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v2

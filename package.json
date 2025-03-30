@@ -106,7 +106,7 @@
     "media-typer": "^1.1.0",
     "merge-descriptors": "^1.0.3",
     "methods": "^1.1.2",
-    "mime": "^1.6.0",
+    "mime": "^4.0.6",
     "mime-db": "^1.52.0",
     "mime-types": "^2.1.35",
     "minecraft-data": "^3.85.0",
@@ -219,7 +219,7 @@
     "wrappy": "^1.0.2",
     "xtend": "^4.0.2",
     "xxhash-wasm": "^0.4.2",
-    "yallist": "^4.0.0",
+    "yallist": "^5.0.0",
     "yggdrasil": "^1.7.0"
   },
   "scripts": {
