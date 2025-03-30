@@ -2,47 +2,44 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+    branches: ["main", "master"]  # Unterstützt sowohl main als auch master
   workflow_dispatch:  # Ermöglicht manuelles Auslösen des Workflows
 
+# Berechtigungen für den GitHub-Token setzen
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Stellt sicher, dass nur ein Deployment gleichzeitig läuft
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
+  # Build-Job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'  # Direkt aus dem Wurzelverzeichnis deployen
+
+  # Deployment-Job
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18  # Stelle sicher, dass die richtige Node.js-Version verwendet wird
-
-      - name: Install Dependencies
-        run: npm install  # Falls du Yarn oder PNPM nutzt, ersetze diesen Befehl
-
-      # Die Anwendung besteht aus statischen Dateien, kein Build-Prozess nötig
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './'  # Direkt aus dem Wurzelverzeichnis deployen
-
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
