@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Animationen Demo</title>
+    <link rel="stylesheet" href="animations.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2E2E2E;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Minecraft', monospace;
+            letter-spacing: 1px;
+            margin-top: 40px;
+        }
+        
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .demo-section {
+            margin-bottom: 40px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+        
+        .demo-element {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #555;
+            color: white;
+            cursor: pointer;
+            border: 2px solid #444;
+        }
+        
+        .button-container {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #5B5B5B;
+            color: white;
+            border: 2px solid #444;
+            cursor: pointer;
+            font-family: 'Minecraft', monospace;
+            font-size: 14px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background-color: #777777;
+        }
+        
+        button:active {
+            background-color: #4A4A4A;
+            transform: translateY(2px);
+        }
+        
+        .minecraft-button {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #999999;
+            border: 2px solid #555555;
+            border-bottom: 4px solid #555555;
+            color: white;
+            font-family: 'Minecraft', monospace;
+            text-transform: uppercase;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.1s;
+            cursor: pointer;
+        }
+        
+        .minecraft-button:hover {
+            background-color: #AAAAAA;
+        }
+        
+        .minecraft-button:active {
+            border-bottom: 2px solid #555555;
+            transform: translateY(2px);
+        }
+        
+        .minecraft-header {
+            text-shadow: 2px 2px 0 #3a3a3a;
+            text-align: center;
+            color: #EFEFEF;
+        }
+        
+        #type-text-output {
+            min-height: 30px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+        
+        #grid-menu-container {
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1 class="minecraft-header">Minecraft-Animationen</h1>
+        <p>Dieses Demo zeigt verschiedene Minecraft-inspirierte Animationen und Übergänge, die in der Anwendung verwendet werden können.</p>
+        
+        <div class="demo-section">
+            <h2 class="minecraft-header">Lade-Animationen</h2>
+            
+            <div class="button-container">
+                <button id="loading-screen-btn">Ladebildschirm anzeigen</button>
+                <button id="progress-loading-btn">Fortschrittsbalken-Ladebildschirm</button>
+            </div>
+            
+            <div class="demo-element" id="breaking-demo">
+                Block Breaking
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="minecraft-header">Ein- und Ausblendeffekte</h2>
+            
+            <div class="button-container">
+                <button id="fade-in-btn">Element einblenden</button>
+                <button id="fade-out-btn">Element ausblenden</button>
+                <button id="container-open-btn">Container öffnen</button>
+            </div>
+            
+            <div id="fade-element" class="demo-element" style="display:none;">
+                Fade Effekt
+            </div>
+            
+            <div id="container-element" style="display:none; background-color: #777; padding: 15px; margin-top: 20px;">
+                <h3>Minecraft Container</h3>
+                <p>Dieses Element öffnet sich wie ein Minecraft-Container.</p>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="minecraft-header">Elementanimationen</h2>
+            
+            <div class="button-container">
+                <button id="bounce-btn">Element springen lassen</button>
+                <button id="rotate-btn">Element rotieren</button>
+                <button id="explode-btn">Element explodieren</button>
+            </div>
+            
+            <div class="demo-element" id="animation-element">
+                Animation
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="minecraft-header">Minecraft UI Elemente</h2>
+            
+            <div class="button-container">
+                <button id="type-text-btn">Text schreiben</button>
+                <button id="grid-menu-btn">Grid-Menü anzeigen</button>
+            </div>
+            
+            <div id="type-text-output">Hier erscheint der getippte Text</div>
+            
+            <div id="grid-menu-container"></div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="minecraft-header">Minecraft Icons</h2>
+            
+            <div id="icons-container" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+        </div>
+    </div>
+    
+    <script src="minecraft-animations.js"></script>
+    <script src="minecraft-icons.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lade-Animationen Demo
+            document.getElementById('loading-screen-btn').addEventListener('click', function() {
+                const loader = MCAnimations.showLoadingScreen('Welt wird geladen...');
+                
+                // Nach 3 Sekunden schließen
+                setTimeout(() => {
+                    loader.updateMessage('Welt erfolgreich geladen!');
+                    setTimeout(() => loader.close(), 500);
+                }, 3000);
+            });
+            
+            document.getElementById('progress-loading-btn').addEventListener('click', function() {
+                const loader = MCAnimations.showLoadingScreen('Daten werden geladen...', true);
+                
+                // Fortschrittsbalken-Simulation
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 5;
+                    loader.updateProgress(progress);
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        loader.updateMessage('Laden abgeschlossen!');
+                        setTimeout(() => loader.close(), 500);
+                    }
+                }, 200);
+            });
+            
+            document.getElementById('breaking-demo').addEventListener('click', function() {
+                MCAnimations.applyBlockBreaking(this, function() {
+                    alert('Block erfolgreich abgebaut!');
+                });
+            });
+            
+            // Ein- und Ausblendeffekte Demo
+            document.getElementById('fade-in-btn').addEventListener('click', function() {
+                const element = document.getElementById('fade-element');
+                MCAnimations.fadeInElement(element);
+            });
+            
+            document.getElementById('fade-out-btn').addEventListener('click', function() {
+                const element = document.getElementById('fade-element');
+                if (element.style.display !== 'none') {
+                    MCAnimations.fadeOutElement(element);
+                }
+            });
+            
+            document.getElementById('container-open-btn').addEventListener('click', function() {
+                const container = document.getElementById('container-element');
+                container.style.display = 'block';
+                MCAnimations.openContainer(container);
+            });
+            
+            // Elementanimationen Demo
+            document.getElementById('bounce-btn').addEventListener('click', function() {
+                const element = document.getElementById('animation-element');
+                MCAnimations.bounceElement(element);
+            });
+            
+            document.getElementById('rotate-btn').addEventListener('click', function() {
+                const element = document.getElementById('animation-element');
+                MCAnimations.rotateElement(element, false, 2000);
+            });
+            
+            document.getElementById('explode-btn').addEventListener('click', function() {
+                const element = document.getElementById('animation-element');
+                // Kopie erstellen, damit wir das Original nicht zerstören
+                const clonedElement = element.cloneNode(true);
+                element.parentNode.appendChild(clonedElement);
+                clonedElement.style.position = 'absolute';
+                clonedElement.style.top = `${element.offsetTop}px`;
+                clonedElement.style.left = `${element.offsetLeft}px`;
+                
+                MCAnimations.explodeElement(clonedElement, true);
+            });
+            
+            // Minecraft UI Elemente Demo
+            document.getElementById('type-text-btn').addEventListener('click', function() {
+                const textOutput = document.getElementById('type-text-output');
+                MCAnimations.typeText(textOutput, 'Willkommen in Minecraft! Dies ist ein Beispiel für einen getippten Text wie in Minecraft-Dialogen.', 30);
+            });
+            
+            document.getElementById('grid-menu-btn').addEventListener('click', function() {
+                const container = document.getElementById('grid-menu-container');
+                container.innerHTML = '';
+                
+                MCAnimations.createGridMenu(container, [
+                    {
+                        icon: MinecraftIcons.getIcon('pickaxe'),
+                        text: 'Abbauen',
+                        onClick: function() { alert('Abbauwerkzeug ausgewählt!'); }
+                    },
+                    {
+                        icon: MinecraftIcons.getIcon('sword'),
+                        text: 'Kämpfen',
+                        onClick: function() { alert('Schwert ausgewählt!'); }
+                    },
+                    {
+                        icon: MinecraftIcons.getIcon('chest'),
+                        text: 'Inventar',
+                        onClick: function() { alert('Inventar geöffnet!'); }
+                    },
+                    {
+                        icon: MinecraftIcons.getIcon('furnace'),
+                        text: 'Schmelzen',
+                        onClick: function() { alert('Ofen ausgewählt!'); }
+                    },
+                    {
+                        icon: MinecraftIcons.getIcon('grassBlock'),
+                        text: 'Bauen',
+                        onClick: function() { alert('Baumodus ausgewählt!'); }
+                    },
+                    {
+                        icon: MinecraftIcons.getIcon('creeper'),
+                        text: 'Monster',
+                        onClick: function() { alert('Monster Information!'); }
+                    }
+                ]);
+            });
+            
+            // Icons Demo
+            const iconsContainer = document.getElementById('icons-container');
+            const iconList = [
+                'pickaxe', 'sword', 'axe', 'shovel', 
+                'grassBlock', 'stoneBlock', 
+                'creeper', 'zombie', 
+                'chest', 'furnace', 
+                'heart', 'loading'
+            ];
+            
+            iconList.forEach(iconName => {
+                const iconBox = document.createElement('div');
+                iconBox.style.textAlign = 'center';
+                iconBox.style.padding = '10px';
+                iconBox.style.background = 'rgba(255,255,255,0.1)';
+                iconBox.style.borderRadius = '5px';
+                
+                MinecraftIcons.appendIcon(iconBox, iconName, 40);
+                
+                const label = document.createElement('div');
+                label.style.marginTop = '5px';
+                label.style.fontSize = '12px';
+                label.textContent = iconName;
+                iconBox.appendChild(label);
+                
+                iconsContainer.appendChild(iconBox);
+            });
+        });
+    </script>
+</body>
+</html>

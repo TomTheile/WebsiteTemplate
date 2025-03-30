@@ -739,6 +739,228 @@
                 display: none;
             }
         }
+        
+        /* Benachrichtigungszentrum Styles */
+        .notification-center {
+            position: relative;
+            display: inline-block;
+            margin-right: 15px;
+        }
+        
+        .notification-icon {
+            cursor: pointer;
+            position: relative;
+            padding: 5px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+        
+        .notification-icon:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: #ff5500;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            min-width: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transform: scale(0);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .notification-badge.visible {
+            transform: scale(1);
+        }
+        
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: -10px;
+            width: 380px;
+            max-height: 0;
+            overflow: hidden;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+        }
+        
+        .notification-dropdown.visible {
+            max-height: 500px;
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .notification-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .mark-all-read {
+            background: none;
+            border: none;
+            color: #1eff00;
+            font-size: 12px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .mark-all-read:hover {
+            opacity: 0.8;
+        }
+        
+        .notification-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .notification-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .notification-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .notification-item.unread {
+            background-color: rgba(30, 255, 0, 0.05);
+        }
+        
+        .notification-item.unread::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background-color: #1eff00;
+        }
+        
+        .notification-item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .notification-type {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        
+        .notification-type.info {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .notification-type.success {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .notification-type.warning {
+            background-color: #fff8e1;
+            color: #f57c00;
+        }
+        
+        .notification-type.error {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+        
+        .notification-time {
+            font-size: 11px;
+            color: #888;
+        }
+        
+        .notification-content {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .notification-footer {
+            padding: 10px 20px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        
+        .notification-footer a {
+            color: #1eff00;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        
+        .notification-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .empty-notifications {
+            padding: 30px;
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+        }
+        
+        /* Notification animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .notification-pulse {
+            animation: pulse 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -1084,6 +1306,10 @@
 
     <!-- Scripts -->
     <script src="script.js"></script>
+    <script src="database.js"></script>
+    <script src="export-notification-functions.js"></script>
+    <script src="minecraft-animations.js"></script>
+    <script src="minecraft-icons.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Authentifizierung überprüfen
@@ -1297,14 +1523,24 @@
          * Dashboard aktualisieren
          */
         function refreshDashboard() {
+            // Minecraft-Ladebildschirm für Dashboard anzeigen
+            const loader = MCAnimations.showLoadingScreen('Verbinde mit Server...', true);
+            loader.updateProgress(30);
+            
             // Auf reale API zugreifen
             fetch('/api/bots/status?userId=' + encodeURIComponent(localStorage.getItem('user_id')), {
                 headers: { 
                     'Authorization': 'Bearer ' + localStorage.getItem('token')
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                loader.updateProgress(60);
+                loader.updateMessage('Daten verarbeiten...');
+                return response.json();
+            })
             .then(data => {
+                loader.updateProgress(90);
+                loader.updateMessage('Dashboard aktualisieren...');
                 if (data.success) {
                     // Statistiken aktualisieren
                     document.getElementById('total-bots').textContent = data.bots ? data.bots.length : '0';
@@ -1394,6 +1630,16 @@
                 document.getElementById('online-time').textContent = '0h 0m';
                 document.getElementById('active-bots').textContent = '0';
                 document.getElementById('total-servers').textContent = '0';
+            })
+            .finally(() => {
+                // Ladebildschirm ausblenden
+                setTimeout(() => {
+                    loader.updateProgress(100);
+                    loader.updateMessage('Fertig!');
+                    setTimeout(() => {
+                        loader.close();
+                    }, 500);
+                }, 300);
             });
         }
         
@@ -1449,33 +1695,32 @@
          * @param {string} botId - Die ID des Bots
          */
         function viewBotLogs(botId) {
-            // Logs-Modal öffnen
+            // Minecraft-Stil Logs-Modal erstellen
             const logModal = document.createElement('div');
             logModal.className = 'modal';
             logModal.style.display = 'block';
             
+            // Container mit Minecraft-Animation
             logModal.innerHTML = `
-                <div class="modal-content">
+                <div class="modal-content mc-container">
                     <div class="modal-header">
-                        <h3>Bot-Logs</h3>
+                        <h3 class="mc-pixelated-text">Bot-Logs</h3>
                         <button class="close-modal" onclick="this.parentNode.parentNode.parentNode.remove()">×</button>
                     </div>
                     <div id="bot-logs-content" style="max-height: 400px; overflow-y: auto;">
                         <div style="text-align: center; padding: 20px;">
-                            <div class="loader" style="border: 4px solid #f3f3f3; border-top: 4px solid #1eff00; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite; margin: 0 auto;"></div>
-                            <p>Logs werden geladen...</p>
+                            <div class="mc-loading-pickaxe"></div>
+                            <p class="mc-pixelated-text">Logs werden geladen...</p>
                         </div>
-                        <style>
-                            @keyframes spin {
-                                0% { transform: rotate(0deg); }
-                                100% { transform: rotate(360deg); }
-                            }
-                        </style>
                     </div>
                 </div>
             `;
             
             document.body.appendChild(logModal);
+            
+            // Container-Öffnungsanimation anwenden
+            const modalContent = logModal.querySelector('.modal-content');
+            MCAnimations.openContainer(modalContent);
             
             // Logs vom Server abrufen
             fetch('/api/bots/logs?botId=' + encodeURIComponent(botId), {
@@ -1521,15 +1766,23 @@
             const detailsModal = document.getElementById('bot-details-modal');
             const detailsContent = document.getElementById('bot-details-content');
             
-            // Lade-Animation anzeigen
+            // Minecraft-Stil Lade-Animation anzeigen
             detailsContent.innerHTML = `
                 <div style="text-align: center; padding: 20px;">
-                    <div class="loader" style="border: 4px solid #f3f3f3; border-top: 4px solid #1eff00; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite; margin: 0 auto;"></div>
-                    <p>Details werden geladen...</p>
+                    <div class="mc-loading-pickaxe"></div>
+                    <p class="mc-pixelated-text">Details werden geladen...</p>
                 </div>
             `;
             
             detailsModal.style.display = 'block';
+            
+            // Minecraft-Animation anwenden
+            const modalContent = detailsModal.querySelector('.modal-content');
+            if (!modalContent.classList.contains('mc-container')) {
+                modalContent.classList.add('mc-container');
+            }
+            
+            MCAnimations.openContainer(modalContent);
             
             // Schließen-Button einrichten
             document.getElementById('close-bot-details').onclick = function() {
@@ -1608,6 +1861,10 @@
          * @param {string} botId - Die ID des Bots
          */
         function startBot(botId) {
+            // Minecraft-Animation für das Starten des Bots anzeigen
+            const loader = MCAnimations.showLoadingScreen('Starte Minecraft Bot...', true);
+            loader.updateProgress(20);
+            
             // API-Anfrage zum Starten eines Bots
             // Token aus dem localStorage für die Authentifizierung holen
             const token = localStorage.getItem('token');
@@ -1622,15 +1879,34 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    refreshDashboard();
-                    showToast('Bot wurde erfolgreich gestartet!', 'success');
-                } else {
-                    showToast(data.error || 'Fehler beim Starten des Bots', 'error');
-                }
+                // Fortschritt aktualisieren
+                loader.updateProgress(60);
+                loader.updateMessage('Bot wird konfiguriert...');
+                
+                setTimeout(() => {
+                    loader.updateProgress(90);
+                    loader.updateMessage('Server Verbindung herstellen...');
+                    
+                    setTimeout(() => {
+                        if (data.success) {
+                            loader.updateProgress(100);
+                            loader.updateMessage('Bot erfolgreich gestartet!');
+                            setTimeout(() => {
+                                loader.close(() => {
+                                    refreshDashboard();
+                                    showToast('Bot wurde erfolgreich gestartet!', 'success');
+                                });
+                            }, 500);
+                        } else {
+                            loader.close();
+                            showToast(data.error || 'Fehler beim Starten des Bots', 'error');
+                        }
+                    }, 800);
+                }, 800);
             })
             .catch(error => {
                 console.error('Fehler:', error);
+                loader.close();
                 showToast('Serverfehler beim Starten des Bots', 'error');
             });
         }
@@ -1640,6 +1916,10 @@
          * @param {string} botId - Die ID des Bots
          */
         function stopBot(botId) {
+            // Minecraft-Animation für das Stoppen des Bots anzeigen
+            const loader = MCAnimations.showLoadingScreen('Stoppe Minecraft Bot...', true);
+            loader.updateProgress(20);
+            
             // API-Anfrage zum Stoppen eines Bots
             // Token aus dem localStorage für die Authentifizierung holen
             const token = localStorage.getItem('token');
@@ -1654,33 +1934,52 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    refreshDashboard();
-                    showToast('Bot wurde erfolgreich gestoppt!', 'success');
+                // Fortschritt aktualisieren
+                loader.updateProgress(60);
+                loader.updateMessage('Bot wird heruntergefahren...');
+                
+                setTimeout(() => {
+                    loader.updateProgress(90);
+                    loader.updateMessage('Verbindung trennen...');
                     
-                    // Benachrichtigung erstellen
-                    const userId = localStorage.getItem('user_id');
-                    if (userId) {
-                        createNotification(userId, `Bot wurde manuell gestoppt (ID: ${botId})`, 'info', {
-                            source: 'Bot-Manager',
-                            actionText: 'Details anzeigen',
-                            link: '#bot-status'
-                        });
-                    }
-                } else {
-                    showToast(data.error || 'Fehler beim Stoppen des Bots', 'error');
-                    
-                    // Fehler-Benachrichtigung erstellen
-                    const userId = localStorage.getItem('user_id');
-                    if (userId) {
-                        createNotification(userId, `Fehler beim Stoppen des Bots: ${data.error || 'Unbekannter Fehler'}`, 'error', {
-                            source: 'Bot-Manager'
-                        });
-                    }
-                }
+                    setTimeout(() => {
+                        if (data.success) {
+                            loader.updateProgress(100);
+                            loader.updateMessage('Bot erfolgreich gestoppt!');
+                            setTimeout(() => {
+                                loader.close(() => {
+                                    refreshDashboard();
+                                    showToast('Bot wurde erfolgreich gestoppt!', 'success');
+                                    
+                                    // Benachrichtigung erstellen
+                                    const userId = localStorage.getItem('user_id');
+                                    if (userId) {
+                                        createNotification(userId, `Bot wurde manuell gestoppt (ID: ${botId})`, 'info', {
+                                            source: 'Bot-Manager',
+                                            actionText: 'Details anzeigen',
+                                            link: '#bot-status'
+                                        });
+                                    }
+                                });
+                            }, 500);
+                        } else {
+                            loader.close();
+                            showToast(data.error || 'Fehler beim Stoppen des Bots', 'error');
+                            
+                            // Fehler-Benachrichtigung erstellen
+                            const userId = localStorage.getItem('user_id');
+                            if (userId) {
+                                createNotification(userId, `Fehler beim Stoppen des Bots: ${data.error || 'Unbekannter Fehler'}`, 'error', {
+                                    source: 'Bot-Manager'
+                                });
+                            }
+                        }
+                    }, 800);
+                }, 800);
             })
             .catch(error => {
                 console.error('Fehler:', error);
+                loader.close();
                 showToast('Serverfehler beim Stoppen des Bots', 'error');
             });
         }
@@ -1734,9 +2033,14 @@
          * Benutzereinstellungen speichern
          */
         function saveUserSettings() {
+            // Minecraft-Animation zeigen
+            const loader = MCAnimations.showLoadingScreen('Einstellungen werden gespeichert...', true);
+            loader.updateProgress(50);
+            
             const username = document.getElementById('user-username').value;
             
             if (!username) {
+                loader.close();
                 showToast('Bitte gib einen Benutzernamen ein.', 'error');
                 return;
             }
@@ -1748,14 +2052,22 @@
             document.getElementById('username-display').textContent = username;
             document.getElementById('user-initials').textContent = username.charAt(0).toUpperCase();
             
-            // Erfolgsnachricht anzeigen
-            showToast('Einstellungen wurden gespeichert!', 'success');
+            // Animation abschließen und Erfolg anzeigen
+            loader.updateProgress(100);
+            loader.updateMessage('Einstellungen gespeichert!');
             
-            // Optionalen API-Call simulieren (für Produktionsumgebung)
-            console.log('Benutzereinstellungen gespeichert:', {
-                username: username,
-                userId: localStorage.getItem('user_id')
-            });
+            setTimeout(() => {
+                loader.close(() => {
+                    // Erfolgsnachricht anzeigen
+                    showToast('Einstellungen wurden gespeichert!', 'success');
+                    
+                    // Optionalen API-Call simulieren (für Produktionsumgebung)
+                    console.log('Benutzereinstellungen gespeichert:', {
+                        username: username,
+                        userId: localStorage.getItem('user_id')
+                    });
+                });
+            }, 500);
         }
         
         /**
@@ -1850,6 +2162,283 @@
                 }, 1000);
             }
         }
+        
+        // Benachrichtigungssystem Funktionen
+        let notificationsOpen = false;
+        let unreadNotificationsCount = 0;
+        
+        // Toggle für das Benachrichtigungsmenü
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notification-dropdown');
+            const icon = document.getElementById('notification-icon');
+            
+            if (notificationsOpen) {
+                dropdown.classList.remove('visible');
+                icon.classList.remove('active');
+            } else {
+                dropdown.classList.add('visible');
+                icon.classList.add('active');
+                loadNotifications(); // Beim Öffnen Benachrichtigungen laden
+            }
+            
+            notificationsOpen = !notificationsOpen;
+        }
+        
+        // Schließen des Dropdown-Menüs, wenn außerhalb geklickt wird
+        document.addEventListener('click', function(event) {
+            const notificationCenter = document.querySelector('.notification-center');
+            const dropdown = document.getElementById('notification-dropdown');
+            
+            if (notificationsOpen && !notificationCenter.contains(event.target)) {
+                dropdown.classList.remove('visible');
+                document.getElementById('notification-icon').classList.remove('active');
+                notificationsOpen = false;
+            }
+        });
+        
+        // Benachrichtigungen vom Server laden
+        function loadNotifications() {
+            const userId = localStorage.getItem('currentUserId');
+            if (!userId) return;
+            
+            // Benachrichtigungen aus der Datenbank abrufen
+            const notifications = window.getNotifications(userId, { limit: 5 });
+            const notificationList = document.getElementById('notification-list');
+            const badge = document.getElementById('notification-badge');
+            
+            // Badge-Zähler aktualisieren
+            const unreadCount = notifications.filter(n => !n.isRead).length;
+            unreadNotificationsCount = unreadCount;
+            
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badge.classList.add('visible');
+            } else {
+                badge.classList.remove('visible');
+            }
+            
+            // Liste leeren
+            notificationList.innerHTML = '';
+            
+            // Wenn keine Benachrichtigungen vorhanden sind
+            if (notifications.length === 0) {
+                notificationList.innerHTML = '<div class="empty-notifications">Keine Benachrichtigungen vorhanden</div>';
+                return;
+            }
+            
+            // Benachrichtigungen in die Liste einfügen
+            notifications.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = 'notification-item';
+                if (!notification.isRead) {
+                    notificationItem.classList.add('unread');
+                }
+                
+                // Zeit formatieren
+                const timeAgo = formatTimeAgo(new Date(notification.createdAt));
+                
+                // HTML für die Benachrichtigung erstellen
+                notificationItem.innerHTML = `
+                    <div class="notification-item-header">
+                        <span class="notification-type ${notification.type}">${capitalizeFirstLetter(notification.type)}</span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    <div class="notification-content">${notification.message}</div>
+                `;
+                
+                // Event-Listener zum Markieren als gelesen
+                notificationItem.addEventListener('click', () => {
+                    window.markNotificationAsRead(notification.id);
+                    notificationItem.classList.remove('unread');
+                    updateUnreadCount();
+                });
+                
+                notificationList.appendChild(notificationItem);
+            });
+        }
+        
+        // Alle Benachrichtigungen als gelesen markieren
+        function markAllNotificationsAsRead() {
+            const userId = localStorage.getItem('currentUserId');
+            if (!userId) return;
+            
+            const updatedCount = window.markAllNotificationsAsRead(userId);
+            
+            // UI aktualisieren
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.classList.remove('unread');
+            });
+            
+            const badge = document.getElementById('notification-badge');
+            badge.classList.remove('visible');
+            unreadNotificationsCount = 0;
+            
+            // Erfolgsmeldung anzeigen
+            showToast('Alle Benachrichtigungen wurden als gelesen markiert', 'success');
+        }
+        
+        // Ungelesene Anzahl aktualisieren
+        function updateUnreadCount() {
+            const userId = localStorage.getItem('currentUserId');
+            if (!userId) return;
+            
+            const unreadNotifications = window.getNotifications(userId, { onlyUnread: true });
+            const badge = document.getElementById('notification-badge');
+            
+            unreadNotificationsCount = unreadNotifications.length;
+            
+            if (unreadNotificationsCount > 0) {
+                badge.textContent = unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount;
+                badge.classList.add('visible');
+            } else {
+                badge.classList.remove('visible');
+            }
+        }
+        
+        // Formatiert Zeitangaben in "vor X Minuten" Format
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) {
+                return 'Gerade eben';
+            }
+            
+            const diffInMinutes = Math.floor(diffInSeconds / 60);
+            if (diffInMinutes < 60) {
+                return `vor ${diffInMinutes} ${diffInMinutes === 1 ? 'Minute' : 'Minuten'}`;
+            }
+            
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            if (diffInHours < 24) {
+                return `vor ${diffInHours} ${diffInHours === 1 ? 'Stunde' : 'Stunden'}`;
+            }
+            
+            const diffInDays = Math.floor(diffInHours / 24);
+            if (diffInDays < 30) {
+                return `vor ${diffInDays} ${diffInDays === 1 ? 'Tag' : 'Tagen'}`;
+            }
+            
+            const diffInMonths = Math.floor(diffInDays / 30);
+            return `vor ${diffInMonths} ${diffInMonths === 1 ? 'Monat' : 'Monaten'}`;
+        }
+        
+        // Großschreibung des ersten Buchstabens
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        // Neue Benachrichtigung erstellen (kann von überall aufgerufen werden)
+        function createNewNotification(message, type = 'info') {
+            const userId = localStorage.getItem('currentUserId');
+            if (!userId) return;
+            
+            // Benachrichtigung in der Datenbank erstellen
+            const notificationId = window.createNotification(userId, message, type);
+            
+            // Badge aktualisieren
+            unreadNotificationsCount++;
+            const badge = document.getElementById('notification-badge');
+            badge.textContent = unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount;
+            badge.classList.add('visible');
+            
+            // Animation für das Benachrichtigungssymbol
+            const icon = document.getElementById('notification-icon');
+            icon.classList.add('notification-pulse');
+            setTimeout(() => {
+                icon.classList.remove('notification-pulse');
+            }, 500);
+            
+            // Wenn das Menü offen ist, Benachrichtigungen neu laden
+            if (notificationsOpen) {
+                loadNotifications();
+            }
+            
+            return notificationId;
+        }
+        
+        // Alle Benachrichtigungen anzeigen (für "Alle anzeigen" Link)
+        function showAllNotifications() {
+            // Hier könnte eine eigene Seite für alle Benachrichtigungen implementiert werden
+            // Für jetzt nur eine Meldung anzeigen
+            showToast('Funktion "Alle Benachrichtigungen anzeigen" wird in einer zukünftigen Version verfügbar sein.', 'info');
+            
+            // Dropdown schließen
+            document.getElementById('notification-dropdown').classList.remove('visible');
+            document.getElementById('notification-icon').classList.remove('active');
+            notificationsOpen = false;
+        }
+        
+        // Initialisierung des Benachrichtigungssystems
+        function initNotificationSystem() {
+            // Ungelesene Benachrichtigungen beim Laden der Seite prüfen
+            updateUnreadCount();
+            
+            // Test-Benachrichtigungen (in der Produktionsversion entfernen)
+            setTimeout(() => {
+                // Test-Benachrichtigungen für die Demo
+                createNewNotification('Willkommen zurück! Deine Bots laufen stabil.', 'info');
+                createNewNotification('Bot "SurvivalBot" ist jetzt online.', 'success');
+                createNewNotification('Dein Premium-Abonnement läuft in 3 Tagen ab.', 'warning');
+            }, 3000);
+            
+            // Periodisches Aktualisieren der Benachrichtigungen
+            setInterval(() => {
+                if (!notificationsOpen) {
+                    updateUnreadCount();
+                }
+            }, 60000); // Jede Minute
+        }
+        
+        // Benachrichtigungssystem initialisieren, wenn die Seite geladen ist
+        document.addEventListener('DOMContentLoaded', function() {
+            // Bereits existierende Initialisierung...
+            
+            // Benachrichtigungssystem initialisieren
+            initNotificationSystem();
+        });
+        
+        // Event-Listener für die Benachrichtigungseinstellungen
+        function saveNotificationSettings() {
+            const botOffline = document.getElementById('notify-bot-offline').checked;
+            const errors = document.getElementById('notify-errors').checked;
+            const updates = document.getElementById('notify-updates').checked;
+            
+            // Einstellungen im localStorage speichern
+            const settings = {
+                botOffline,
+                errors,
+                updates
+            };
+            
+            localStorage.setItem('notificationSettings', JSON.stringify(settings));
+            showToast('Benachrichtigungseinstellungen wurden gespeichert', 'success');
+            
+            // Demo-Benachrichtigung anzeigen
+            createNewNotification('Benachrichtigungseinstellungen aktualisiert', 'success');
+        }
+        
+        // Benachrichtigungseinstellungen laden
+        function loadNotificationSettings() {
+            const settingsString = localStorage.getItem('notificationSettings');
+            if (!settingsString) return;
+            
+            try {
+                const settings = JSON.parse(settingsString);
+                document.getElementById('notify-bot-offline').checked = settings.botOffline;
+                document.getElementById('notify-errors').checked = settings.errors;
+                document.getElementById('notify-updates').checked = settings.updates;
+            } catch (e) {
+                console.error('Fehler beim Laden der Benachrichtigungseinstellungen:', e);
+            }
+        }
+        
+        // Einstellungen beim Laden der Einstellungsseite laden
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event-Listener für Seitenwechsel, um Einstellungen zu laden
+            const settingsNavItem = document.querySelector('.nav-item[data-page="settings"]');
+            settingsNavItem.addEventListener('click', loadNotificationSettings);
+        });
     </script>
 </body>
 </html>
