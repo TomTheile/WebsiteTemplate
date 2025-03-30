@@ -612,13 +612,13 @@ function formatRelativeTime(date) {
 function showPage(pageName) {
     // Alle Seiten ausblenden
     document.querySelectorAll('.dashboard-page').forEach(page => {
-        page.style.display = 'none';
+        page.classList.remove('active');
     });
 
     // Gewählte Seite anzeigen
     const selectedPage = document.getElementById(`${pageName}-page`);
     if (selectedPage) {
-        selectedPage.style.display = 'block';
+        selectedPage.classList.add('active');
     }
 
     // Navigation-Items aktualisieren
