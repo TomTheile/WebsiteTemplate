@@ -146,7 +146,7 @@
     "pg-protocol": "^1.8.0",
     "pg-types": "^2.2.0",
     "pgpass": "^1.0.5",
-    "postgres-array": "^2.0.0",
+    "postgres-array": "^3.0.4",
     "postgres-bytea": "^1.0.0",
     "postgres-date": "^2.1.0",
     "postgres-interval": "^1.2.0",
