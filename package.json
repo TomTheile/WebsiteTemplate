@@ -204,7 +204,7 @@
     "type-is": "^2.0.1",
     "typed-emitter": "^1.4.0",
     "uint4": "^0.1.2",
-    "undici-types": "^6.20.0",
+    "undici-types": "^7.9.0",
     "unpipe": "^1.0.0",
     "uri-js": "^4.4.1",
     "util-deprecate": "^1.0.2",
